@@ -280,3 +280,40 @@ ranked:
 leaderboard:
   cache-duration: 60    # Cache refresh interval in seconds
   top-count: 10         # Number of top players to track
+
+# ==========================================
+#              BOSSBAR
+# ==========================================
+# BossBar displayed at the top of the screen.
+# Colors: BLUE, GREEN, PINK, PURPLE, RED, WHITE, YELLOW
+# Styles: SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
+bossbar:
+  enabled: true
+  lobby:
+    text: "<gradient:#FFD700:#FFA500><bold>⚔</bold></gradient> <gray>Welcome to</gray> <gradient:#FFD700:#FFA500><bold>Duels</bold></gradient> <gradient:#FFD700:#FFA500><bold>⚔</bold></gradient>"
+    color: YELLOW
+    style: SOLID
+  game:
+    text: "<red>⚔ Fighting: <white>%opponent%</white> <dark_gray>|</dark_gray> <yellow>%kit%</yellow>"
+    color: RED
+    style: SOLID
+
+# ==========================================
+#              TAB (Header/Footer)
+# ==========================================
+# TAB list header and footer customization.
+# Placeholders: %player%, %online%, %max%, %ping%, %date%, %time%, %wins%, %losses%, %status%, %queue%
+tab:
+  enabled: true
+  header:
+    - ""
+    - "<gradient:#FFD700:#FFA500><bold>⚔ RAIKOU DUELS ⚔</bold></gradient>"
+    - "<gray>Practice & Competitive PvP</gray>"
+    - ""
+  footer:
+    - ""
+    - "<gray>Players: <white>%online%/%max%</white></gray>"
+    - "<gray>Your Ping: <green>%ping%ms</green></gray>"
+    - ""
+    - "<yellow>raikou.dev</yellow>"
+    - ""

@@ -48,6 +48,10 @@ public class DuelsPlugin extends JavaPlugin {
     private me.raikou.duels.leaderboard.LeaderboardManager leaderboardManager;
     @Getter
     private me.raikou.duels.command.LeaderboardCommand leaderboardCommand;
+    @Getter
+    private me.raikou.duels.util.BossBarManager bossBarManager;
+    @Getter
+    private me.raikou.duels.util.TabManager tabManager;
 
     @Override
     public void onEnable() {
@@ -113,6 +117,10 @@ public class DuelsPlugin extends JavaPlugin {
             new me.raikou.duels.placeholder.DuelsExpansion(this).register();
             getLogger().info("PlaceholderAPI hooked successfully!");
         }
+
+        // BossBar & TAB
+        this.bossBarManager = new me.raikou.duels.util.BossBarManager(this);
+        this.tabManager = new me.raikou.duels.util.TabManager(this);
 
         getLogger().info("Duels Core Plugin has been enabled!");
     }
