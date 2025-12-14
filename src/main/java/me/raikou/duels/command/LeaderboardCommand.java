@@ -65,7 +65,8 @@ public class LeaderboardCommand implements CommandExecutor, Listener {
         List<LeaderboardEntry> entries = plugin.getLeaderboardManager().getLeaderboard();
 
         // Slots for top 10 (centered layout)
-        int[] topSlots = { 13, 21, 22, 23, 29, 30, 31, 32, 33, 40 };
+        // Position: 1st=13, 2nd=21, 3rd=23, 4th=22, 5th-9th=29-33, 10th=40
+        int[] topSlots = { 13, 21, 23, 22, 29, 30, 31, 32, 33, 40 };
 
         // Medal colors for top 3
         Material[] medalMaterials = {
