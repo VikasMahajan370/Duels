@@ -1,49 +1,74 @@
-# Duels Plugin
+# Duels
 
-**Professional Duels Core Plugin** for Minecraft servers, developed by Raikou.
+A modern, feature-rich duels plugin for Paper 1.21+ servers.
 
 ## Features
-- **1v1 Duels**: Challenge other players to combat.
-- **Custom Kits**: Create and manage specialized kits for duels.
-- **Statistics**: Track wins, losses, and other stats (planned/in-progress).
-- **Admin Tools**: Comprehensive admin commands for managing the system.
+
+- **Queue System** — Unranked & Ranked matchmaking with ELO ratings
+- **Custom Kits** — Create kits from inventory with configurable GUI icons
+- **Arena Management** — Multiple arenas with spawn points
+- **Kit Editor** — Players can customize their kit layouts
+- **Leaderboard** — Top players with PlaceholderAPI support
+- **Anti-Cheat** — Built-in Flight, KillAura, and Reach detection
+- **Discord Logging** — Webhook or Bot integration for events
+- **Multi-Language** — English and Turkish out of the box
+- **Legacy PvP** — Optional 1.8-style combat mechanics
+- **Storage** — SQLite (default) or MySQL
 
 ## Requirements
+
 - Java 21+
-- Paper 1.21+ (or compatible forks)
+- Paper 1.21+
+- Optional: [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/)
 
 ## Installation
-1. Download the latest release JAR.
-2. Place it in your server's `plugins/` folder.
-3. Restart the server.
+
+1. Drop the JAR into `plugins/`
+2. Restart the server
+3. Configure `config.yml`
 
 ## Commands
 
-### Player Commands
-| Command | Alias | Description | Permission |
-| :--- | :--- | :--- | :--- |
-| `/duel <player>` | `/duels` | Send a duel request to a player | None |
-| `/duel accept <player>` | | Accept a duel request | None |
-| `/duel deny <player>` | | Deny a duel request | None |
+| Command | Description |
+|---------|-------------|
+| `/duel <player> [kit]` | Send a duel request |
+| `/duel accept/deny <player>` | Accept or deny requests |
+| `/lobby` | Return to lobby |
+| `/stats [player]` | View statistics |
+| `/leaderboard` | Open leaderboard GUI |
+| `/ping` | View connection info |
 
 ### Admin Commands
-| Command | Description | Permission |
-| :--- | :--- | :--- |
-| `/duel admin reload` | Reload plugin configuration | `duels.admin` |
-| `/duel admin kit create <name>` | Create a new kit from inventory | `duels.admin` |
+
+| Command | Description |
+|---------|-------------|
+| `/duel admin reload` | Reload configuration |
+| `/duel admin kit create <name>` | Create kit from inventory |
+| `/duel admin arena create <name>` | Create a new arena |
+| `/duel admin arena setspawn <name> <1\|2\|spectator>` | Set arena spawns |
+| `/duel admin setlobby` | Set lobby location |
+
+## PlaceholderAPI
+
+```
+%duels_top_1_name%    %duels_top_1_wins%
+%duels_top_2_name%    %duels_top_2_losses%
+%duels_top_3_name%    %duels_top_3_kills%
+...up to position 10
+```
 
 ## Permissions
-- `duels.admin`: Grants access to all administrative commands. (Default: OP)
 
-## Building from Source
+| Permission | Description |
+|------------|-------------|
+| `duels.admin` | Access to admin commands |
+
+## Building
 
 ```bash
-git clone https://github.com/devRaikou/Duels.git
-cd Duels
 mvn clean package
 ```
 
-The compiled JAR will be in the `target/` directory.
-
 ## License
-This project is licensed under the [MIT License](LICENSE).
+
+[MIT License](LICENSE)
