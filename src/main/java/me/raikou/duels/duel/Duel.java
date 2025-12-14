@@ -90,10 +90,25 @@ public class Duel {
     }
 
     public void reset() {
-        // Teleport to spawn (Todo: spawn management)
+        // Teleport to spawn and reset players
+        for (UUID uuid : players) {
+            Player p = Bukkit.getPlayer(uuid);
+            if (p != null) {
+                p.getInventory().clear();
+                p.setHealth(20);
+                p.setFoodLevel(20);
+                if (plugin.getLobbyManager().isLobbySet()) {
+                    plugin.getLobbyManager().teleportToLobby(p);
+                } else {
+                    p.teleport(arena.getSpectatorSpawn()); // Fallback or basic world spawn
+                }
+            }
+        }
+
         // Reset Arena
         arena.setState(ArenaState.WAITING);
-        // Call manager to remove this duel (Needs event or callback, for now
-        // rudimentary)
+
+        // Remove from manager
+        plugin.getDuelManager().removeDuel(this);
     }
 }
