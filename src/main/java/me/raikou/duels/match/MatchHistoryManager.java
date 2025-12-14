@@ -50,10 +50,21 @@ public class MatchHistoryManager {
     }
 
     /**
-     * Get a match result by ID.
+     * Get a match result by ID (full or short ID).
      */
     public DuelResult getMatch(String matchId) {
-        return matchHistory.get(matchId);
+        // Try exact match first
+        DuelResult result = matchHistory.get(matchId);
+        if (result != null)
+            return result;
+
+        // Try matching by short ID (prefix match)
+        for (Map.Entry<String, DuelResult> entry : matchHistory.entrySet()) {
+            if (entry.getKey().startsWith(matchId) || entry.getValue().getShortMatchId().equals(matchId)) {
+                return entry.getValue();
+            }
+        }
+        return null;
     }
 
     /**
@@ -72,10 +83,19 @@ public class MatchHistoryManager {
     }
 
     /**
-     * Check if a match exists.
+     * Check if a match exists (full or short ID).
      */
     public boolean hasMatch(String matchId) {
-        return matchHistory.containsKey(matchId);
+        if (matchHistory.containsKey(matchId))
+            return true;
+
+        // Try matching by short ID
+        for (Map.Entry<String, DuelResult> entry : matchHistory.entrySet()) {
+            if (entry.getKey().startsWith(matchId) || entry.getValue().getShortMatchId().equals(matchId)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

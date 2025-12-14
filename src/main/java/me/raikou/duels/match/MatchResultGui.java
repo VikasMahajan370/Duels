@@ -194,7 +194,7 @@ public class MatchResultGui implements Listener {
 
         // Match ID
         lore.add(Component.text("ID: ").color(NamedTextColor.DARK_GRAY)
-                .append(Component.text(result.getMatchId()).color(NamedTextColor.GRAY))
+                .append(Component.text(result.getShortMatchId()).color(NamedTextColor.GRAY))
                 .decoration(TextDecoration.ITALIC, false));
 
         meta.lore(lore);
