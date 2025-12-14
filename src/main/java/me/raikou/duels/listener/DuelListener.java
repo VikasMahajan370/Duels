@@ -114,4 +114,85 @@ public class DuelListener implements Listener {
             victim.teleport(duel.getArena().getSpectatorSpawn());
         }
     }
+
+    // --- Lobby Protection ---
+
+    @EventHandler
+    public void onDamage(org.bukkit.event.entity.EntityDamageEvent event) {
+        if (event.getEntity() instanceof Player player) {
+            if (plugin.getDuelManager().getDuel(player) == null) {
+                event.setCancelled(true);
+                if (event.getCause() == org.bukkit.event.entity.EntityDamageEvent.DamageCause.VOID) {
+                    if (plugin.getLobbyManager().isLobbySet()) {
+                        plugin.getLobbyManager().teleportToLobby(player);
+                    } else {
+                        player.teleport(org.bukkit.Bukkit.getWorlds().get(0).getSpawnLocation());
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onFood(org.bukkit.event.entity.FoodLevelChangeEvent event) {
+        if (event.getEntity() instanceof Player player) {
+            if (plugin.getDuelManager().getDuel(player) == null) {
+                event.setCancelled(true);
+                player.setFoodLevel(20);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onInventoryClick(org.bukkit.event.inventory.InventoryClickEvent event) {
+        if (event.getWhoClicked() instanceof Player player) {
+            if (plugin.getDuelManager().getDuel(player) == null) {
+                // Allow kit editor
+                if (plugin.getKitEditorManager().isEditing(player))
+                    return;
+                // Allow specific bypass permission? No, full lock for now.
+                if (player.getGameMode() == org.bukkit.GameMode.CREATIVE && player.isOp())
+                    return;
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onDrop(org.bukkit.event.player.PlayerDropItemEvent event) {
+        if (plugin.getDuelManager().getDuel(event.getPlayer()) == null) {
+            if (event.getPlayer().getGameMode() == org.bukkit.GameMode.CREATIVE && event.getPlayer().isOp())
+                return;
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPickup(org.bukkit.event.entity.EntityPickupItemEvent event) {
+        if (event.getEntity() instanceof Player player) {
+            if (plugin.getDuelManager().getDuel(player) == null) {
+                if (player.getGameMode() == org.bukkit.GameMode.CREATIVE && player.isOp())
+                    return;
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onBlockBreak(org.bukkit.event.block.BlockBreakEvent event) {
+        if (plugin.getDuelManager().getDuel(event.getPlayer()) == null) {
+            if (event.getPlayer().getGameMode() == org.bukkit.GameMode.CREATIVE && event.getPlayer().isOp())
+                return;
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onBlockPlace(org.bukkit.event.block.BlockPlaceEvent event) {
+        if (plugin.getDuelManager().getDuel(event.getPlayer()) == null) {
+            if (event.getPlayer().getGameMode() == org.bukkit.GameMode.CREATIVE && event.getPlayer().isOp())
+                return;
+            event.setCancelled(true);
+        }
+    }
 }
