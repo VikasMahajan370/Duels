@@ -157,3 +157,14 @@ discord:
     duel-end: true
     player-join: true
     player-quit: true
+
+# ==========================================
+#               MODERN MOTD
+# ==========================================
+motd:
+  enabled: true
+  # Use <newline> for multiple lines if not using the list format automatically joined.
+  # Placeholders: %online%, %max%, %version%, %date%
+  lines:
+    - "     <gradient:#00AAFF:#00FFFF><bold>RAIKOU DUELS</bold></gradient>     "
+    - "   <gray>Practice & Competitive PvP</gray>   "

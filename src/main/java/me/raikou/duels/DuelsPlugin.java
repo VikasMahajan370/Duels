@@ -75,6 +75,7 @@ public class DuelsPlugin extends JavaPlugin {
 
         // Listeners
         getServer().getPluginManager().registerEvents(new me.raikou.duels.listener.DuelListener(this), this);
+        getServer().getPluginManager().registerEvents(new me.raikou.duels.listener.MotdListener(this), this);
 
         // Scoreboard
         new me.raikou.duels.util.BoardManager(this);
