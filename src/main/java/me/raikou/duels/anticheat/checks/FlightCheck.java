@@ -11,23 +11,32 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.UUID;
 
 /**
- * Improved flight detection with multiple methods:
- * - Air time tracking
- * - Vertical velocity analysis
+ * Strict flight detection with multiple detection methods:
+ * - Air time tracking (hovering detection)
+ * - Vertical velocity analysis (illegal upward movement)
  * - Ground distance checking
+ * - Y-level stability detection (hovering in place)
  */
 public class FlightCheck extends AbstractCheck {
 
-    private final Map<UUID, Long> airTimeStart = new HashMap<>();
+    // Tracking data
     private final Map<UUID, Integer> airTicks = new HashMap<>();
+    private final Map<UUID, LinkedList<Double>> yHistory = new HashMap<>();
+    private final Map<UUID, Long> lastOnGround = new HashMap<>();
     private final Map<UUID, Double> lastY = new HashMap<>();
+    private final Map<UUID, Integer> hoverTicks = new HashMap<>();
 
-    private static final int MAX_AIR_TICKS = 40; // 2 seconds without touching ground
-    private static final double SUSPICIOUS_Y_INCREASE = 0.5; // blocks per check
+    // Thresholds - STRICT
+    private static final int MAX_AIR_TICKS = 35; // ~1.75 seconds max air time
+    private static final int MAX_HOVER_TICKS = 12; // ~0.6 seconds hovering
+    private static final double HOVER_THRESHOLD = 0.05; // Y change considered "hovering"
+    private static final double MAX_UPWARD_VELOCITY = 0.42; // Normal jump is ~0.42
+    private static final int Y_HISTORY_SIZE = 5;
 
     public FlightCheck(DuelsPlugin plugin) {
         super(plugin, "Flight", CheckType.MOVEMENT, "flight");
@@ -40,74 +49,129 @@ public class FlightCheck extends AbstractCheck {
 
         UUID uuid = player.getUniqueId();
 
-        // Skip if in creative/spectator mode
+        // === EXEMPTIONS ===
+
+        // Creative/Spectator mode
         if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
             reset(uuid);
             return false;
         }
 
-        // Skip if player has allowed fly
+        // Allowed flight (fly command, etc.)
         if (player.getAllowFlight() || player.isFlying()) {
             reset(uuid);
             return false;
         }
 
-        // Skip if player has levitation/slow falling
+        // Potion effects that allow flight-like behavior
         if (player.hasPotionEffect(PotionEffectType.LEVITATION) ||
                 player.hasPotionEffect(PotionEffectType.SLOW_FALLING)) {
             reset(uuid);
             return false;
         }
 
-        // Skip if player is in water/lava/climbing
-        if (player.isInWater() || isInLiquid(player) || isClimbing(player)) {
+        // Riptide trident propulsion check
+        if (player.isRiptiding()) {
             reset(uuid);
             return false;
         }
+
+        // In water, lava, or climbing
+        if (player.isInWater() || isInLiquid(player) || isClimbing(player) || player.isGliding()) {
+            reset(uuid);
+            return false;
+        }
+
+        // In vehicle
+        if (player.isInsideVehicle()) {
+            reset(uuid);
+            return false;
+        }
+
+        // Recently teleported or respawned (grace period)
+        // Skip if player just joined
+        if (!lastY.containsKey(uuid)) {
+            lastY.put(uuid, player.getLocation().getY());
+            return false;
+        }
+
+        // === DETECTION ===
 
         Location loc = player.getLocation();
         double currentY = loc.getY();
+        double previousY = lastY.getOrDefault(uuid, currentY);
+        double yDiff = currentY - previousY;
+        lastY.put(uuid, currentY);
 
-        // Check if player is on ground or near ground
-        boolean onGround = isOnGroundCustom(player);
+        // Track Y history for pattern analysis
+        LinkedList<Double> history = yHistory.computeIfAbsent(uuid, k -> new LinkedList<>());
+        history.addLast(yDiff);
+        if (history.size() > Y_HISTORY_SIZE) {
+            history.removeFirst();
+        }
+
+        // Check if player is on ground
+        boolean onGround = isOnGroundStrict(player);
 
         if (onGround) {
+            lastOnGround.put(uuid, System.currentTimeMillis());
             reset(uuid);
             return false;
         }
 
-        // Player is in air - start tracking
-        int ticks = airTicks.getOrDefault(uuid, 0) + 1;
-        airTicks.put(uuid, ticks);
+        // === AIR TICK TRACKING ===
+        int currentAirTicks = airTicks.getOrDefault(uuid, 0) + 1;
+        airTicks.put(uuid, currentAirTicks);
 
-        // Track Y position changes
-        double previousY = lastY.getOrDefault(uuid, currentY);
-        lastY.put(uuid, currentY);
-
-        double yDiff = currentY - previousY;
-
-        // Detection 1: Too long in air without ground
-        if (ticks > MAX_AIR_TICKS) {
-            return true;
+        // === DETECTION 1: Too long in air ===
+        if (currentAirTicks > MAX_AIR_TICKS) {
+            // Check if not near any blocks (truly flying)
+            if (!hasBlocksNearby(player, 2)) {
+                return true; // FLYING
+            }
         }
 
-        // Detection 2: Ascending without jump (after initial jump ticks)
-        // Normal jump: ~12 ticks of ascending, then falling
-        if (ticks > 20 && yDiff > 0.1) {
-            // Player is still going UP after 1 second - suspicious
-            return true;
+        // === DETECTION 2: Hovering (Y not changing while in air) ===
+        if (Math.abs(yDiff) < HOVER_THRESHOLD) {
+            int hover = hoverTicks.getOrDefault(uuid, 0) + 1;
+            hoverTicks.put(uuid, hover);
+
+            if (hover > MAX_HOVER_TICKS && !hasBlocksNearby(player, 1)) {
+                // Player is hovering in mid-air
+                return true; // HOVERING
+            }
+        } else {
+            hoverTicks.put(uuid, 0);
         }
 
-        // Detection 3: Hovering (Y not changing but in air)
-        if (ticks > 15 && Math.abs(yDiff) < 0.01 && !hasBlocksNearby(player)) {
-            // Player is hovering in place
-            return true;
+        // === DETECTION 3: Illegal upward movement ===
+        // After 15 ticks in air, player should be falling, not rising
+        if (currentAirTicks > 15 && yDiff > 0.1) {
+            // Still going UP after normal jump apex
+            if (!hasBlocksNearby(player, 1)) {
+                return true; // FLIGHT HACK
+            }
         }
 
-        // Detection 4: Consistent upward movement
-        if (yDiff > SUSPICIOUS_Y_INCREASE) {
-            // Moving up too fast
-            return true;
+        // === DETECTION 4: Consistent Y-level (flying straight) ===
+        if (history.size() >= Y_HISTORY_SIZE && currentAirTicks > 20) {
+            boolean allSmall = true;
+            for (double diff : history) {
+                if (Math.abs(diff) > 0.1) {
+                    allSmall = false;
+                    break;
+                }
+            }
+            if (allSmall && !hasBlocksNearby(player, 2)) {
+                // Y hasn't changed significantly while in air for extended time
+                return true; // FLYING STRAIGHT
+            }
+        }
+
+        // === DETECTION 5: Impossible upward velocity ===
+        if (yDiff > MAX_UPWARD_VELOCITY + 0.1 && currentAirTicks > 5) {
+            // Moving up faster than possible without cheats
+            return true; // SPEED/FLIGHT HACK
         }
 
         return false;
@@ -115,39 +179,40 @@ public class FlightCheck extends AbstractCheck {
 
     private void reset(UUID uuid) {
         airTicks.remove(uuid);
-        airTimeStart.remove(uuid);
-        lastY.remove(uuid);
+        hoverTicks.remove(uuid);
+        // Keep yHistory and lastY for better tracking
     }
 
     /**
-     * Custom ground check - more reliable than Bukkit's
+     * Strict ground check - checks multiple points below player
      */
-    private boolean isOnGroundCustom(Player player) {
+    private boolean isOnGroundStrict(Player player) {
         Location loc = player.getLocation();
 
-        // Check blocks directly below player
+        // Check at foot level and slightly below
         for (double x = -0.3; x <= 0.3; x += 0.3) {
             for (double z = -0.3; z <= 0.3; z += 0.3) {
-                Block below = loc.clone().add(x, -0.1, z).getBlock();
-                if (below.getType().isSolid()) {
-                    return true;
-                }
-                // Also check slightly below feet
-                Block belowFeet = loc.clone().add(x, -0.5, z).getBlock();
-                if (belowFeet.getType().isSolid()) {
-                    return true;
+                for (double y = -0.1; y >= -0.6; y -= 0.25) {
+                    Block block = loc.clone().add(x, y, z).getBlock();
+                    if (block.getType().isSolid()) {
+                        return true;
+                    }
                 }
             }
         }
-        return false;
+
+        // Also check Bukkit's ground state
+        return player.isOnGround();
     }
 
-    private boolean hasBlocksNearby(Player player) {
+    /**
+     * Check if there are any solid blocks nearby
+     */
+    private boolean hasBlocksNearby(Player player, int radius) {
         Location loc = player.getLocation();
-        // Check in a small radius for any solid blocks
-        for (int x = -1; x <= 1; x++) {
-            for (int y = -2; y <= 1; y++) {
-                for (int z = -1; z <= 1; z++) {
+        for (int x = -radius; x <= radius; x++) {
+            for (int y = -radius; y <= radius; y++) {
+                for (int z = -radius; z <= radius; z++) {
                     Block block = loc.clone().add(x, y, z).getBlock();
                     if (block.getType().isSolid()) {
                         return true;
@@ -159,10 +224,12 @@ public class FlightCheck extends AbstractCheck {
     }
 
     private boolean isInLiquid(Player player) {
-        Material type = player.getLocation().getBlock().getType();
-        Material below = player.getLocation().clone().subtract(0, 0.1, 0).getBlock().getType();
+        Location loc = player.getLocation();
+        Material type = loc.getBlock().getType();
+        Material below = loc.clone().subtract(0, 0.3, 0).getBlock().getType();
         return type == Material.WATER || type == Material.LAVA ||
-                below == Material.WATER || below == Material.LAVA;
+                below == Material.WATER || below == Material.LAVA ||
+                type == Material.BUBBLE_COLUMN;
     }
 
     private boolean isClimbing(Player player) {
@@ -170,10 +237,13 @@ public class FlightCheck extends AbstractCheck {
         return type == Material.LADDER || type == Material.VINE ||
                 type == Material.WEEPING_VINES || type == Material.TWISTING_VINES ||
                 type == Material.WEEPING_VINES_PLANT || type == Material.TWISTING_VINES_PLANT ||
-                type == Material.SCAFFOLDING;
+                type == Material.SCAFFOLDING || type == Material.POWDER_SNOW;
     }
 
     public void cleanup(UUID uuid) {
         reset(uuid);
+        yHistory.remove(uuid);
+        lastY.remove(uuid);
+        lastOnGround.remove(uuid);
     }
 }
