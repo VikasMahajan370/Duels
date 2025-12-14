@@ -46,6 +46,50 @@ public class DuelCommand implements CommandExecutor {
                 plugin.getQueueManager().addToQueue(player, kit, QueueType.SOLO);
                 break;
 
+            case "invite":
+                if (args.length < 3) {
+                    me.raikou.duels.util.MessageUtil.sendError(player, "Usage: <yellow>/duel invite <player> <kit>");
+                    return true;
+                }
+                Player target = org.bukkit.Bukkit.getPlayer(args[1]);
+                if (target == null) {
+                    me.raikou.duels.util.MessageUtil.sendError(player, "general.player-not-found");
+                    return true;
+                }
+                String kitName = args[2];
+                if (plugin.getKitManager().getKit(kitName) == null) {
+                    me.raikou.duels.util.MessageUtil.sendError(player, "general.kit-not-found");
+                    return true;
+                }
+                plugin.getRequestManager().sendRequest(player, target, kitName);
+                break;
+
+            case "accept":
+                if (args.length < 2) {
+                    me.raikou.duels.util.MessageUtil.sendError(player, "Usage: <yellow>/duel accept <player>");
+                    return true;
+                }
+                Player senderPlayer = org.bukkit.Bukkit.getPlayer(args[1]);
+                if (senderPlayer == null) {
+                    me.raikou.duels.util.MessageUtil.sendError(player, "general.player-not-found");
+                    return true;
+                }
+                plugin.getRequestManager().acceptRequest(player, senderPlayer);
+                break;
+
+            case "deny":
+                if (args.length < 2) {
+                    me.raikou.duels.util.MessageUtil.sendError(player, "Usage: <yellow>/duel deny <player>");
+                    return true;
+                }
+                Player sP = org.bukkit.Bukkit.getPlayer(args[1]);
+                if (sP == null) {
+                    me.raikou.duels.util.MessageUtil.sendError(player, "general.player-not-found");
+                    return true;
+                }
+                plugin.getRequestManager().denyRequest(player, sP);
+                break;
+
             case "leave":
                 plugin.getQueueManager().removeFromQueue(player);
                 break;
@@ -174,7 +218,13 @@ public class DuelCommand implements CommandExecutor {
         player.sendMessage(me.raikou.duels.util.MessageUtil.parse(
                 "<dark_gray>▪</dark_gray> <yellow>/lobby</yellow> <gray>Return to lobby</gray>"));
         player.sendMessage(me.raikou.duels.util.MessageUtil.parse(
-                "<dark_gray>▪</dark_gray> <yellow>/stats [player]</yellow> <gray>View statistics</gray>"));
+                "<dark_gray>▪</dark_gray> <yellow>/duel stats [player]</yellow> <gray>View statistics</gray>"));
+        player.sendMessage(me.raikou.duels.util.MessageUtil.parse(
+                "<dark_gray>▪</dark_gray> <yellow>/duel invite <player> <kit></yellow> <gray>Send duel request</gray>"));
+        player.sendMessage(me.raikou.duels.util.MessageUtil.parse(
+                "<dark_gray>▪</dark_gray> <yellow>/duel accept <player></yellow> <gray>Accept request</gray>"));
+        player.sendMessage(me.raikou.duels.util.MessageUtil.parse(
+                "<dark_gray>▪</dark_gray> <yellow>/duel deny <player></yellow> <gray>Deny request</gray>"));
 
         if (player.hasPermission("duels.admin")) {
             player.sendMessage(

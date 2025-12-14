@@ -68,3 +68,21 @@ titles:
     subtitle: "<yellow>Winner: <white>%winner%"
   countdown:
     title: "<yellow>%count%"
+
+request:
+  sent: "<yellow>Duel request sent to <white>%player%</white> with kit <aqua>%kit%</aqua>."
+  received:
+    - "<newline><gradient:#FFD700:#FFA500><bold>DUEL REQUEST</bold></gradient>"
+    - "<gray>Sender: <yellow>%sender%</yellow>"
+    - "<gray>Kit: <aqua>%kit%</aqua>"
+    - ""
+    - "<green><click:run_command:'/duel accept %sender%'><hover:show_text:'<green>Click to accept'>[ACCEPT]</hover></click>   <red><click:run_command:'/duel deny %sender%'><hover:show_text:'<red>Click to deny'>[DENY]</hover></click>"
+    - "<newline>"
+  accepted: "<green>You accepted the duel request from <yellow>%sender%</yellow>."
+  denied: "<red>You denied the duel request from <yellow>%sender%</yellow>."
+  denied-sender: "<red><yellow>%target%</yellow> denied your duel request."
+  expired: "<red>Duel request from <yellow>%sender%</yellow> expired."
+  expired-sender: "<red>Duel request to <yellow>%target%</yellow> expired."
+  no-request: "<red>You do not have a pending request from that player."
+  self-request: "<red>You cannot duel yourself!"
+  already-sent: "<red>You already sent a request to this player. Wait for it to expire."

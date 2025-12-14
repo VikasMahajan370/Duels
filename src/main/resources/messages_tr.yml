@@ -68,3 +68,21 @@ titles:
     subtitle: "<yellow>Kazanan: <white>%winner%"
   countdown:
     title: "<yellow>%count%"
+
+request:
+  sent: "<yellow><white>%player%</white> adlı oyuncuya <aqua>%kit%</aqua> kiti ile düello isteği gönderildi."
+  received:
+    - "<newline><gradient:#FFD700:#FFA500><bold>DÜELLO İSTEĞİ</bold></gradient>"
+    - "<gray>Gönderen: <yellow>%sender%</yellow>"
+    - "<gray>Kit: <aqua>%kit%</aqua>"
+    - ""
+    - "<green><click:run_command:'/duel accept %sender%'><hover:show_text:'<green>Kabul etmek için tıkla'>[KABUL ET]</hover></click>   <red><click:run_command:'/duel deny %sender%'><hover:show_text:'<red>Reddetmek için tıkla'>[REDDET]</hover></click>"
+    - "<newline>"
+  accepted: "<yellow>%sender%</yellow> kişisinden gelen düello isteğini <green>kabul ettin</green>."
+  denied: "<yellow>%sender%</yellow> kişisinden gelen düello isteğini <red>reddettin</red>."
+  denied-sender: "<yellow>%target%</yellow> düello isteğini <red>reddetti</red>."
+  expired: "<yellow>%sender%</yellow> kişisinden gelen düello isteği <red>sona erdi</red>."
+  expired-sender: "<yellow>%target%</yellow> kişisine gönderdiğin düello isteği <red>sona erdi</red>."
+  no-request: "<red>Bu oyuncudan bekleyen bir isteğin yok."
+  self-request: "<red>Kendinle düello atamazsın!"
+  already-sent: "<red>Bu oyuncuya zaten bir istek gönderdin. Süresinin dolmasını bekle."

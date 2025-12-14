@@ -36,6 +36,8 @@ public class DuelsPlugin extends JavaPlugin {
     private me.raikou.duels.discord.DiscordManager discordManager;
     @Getter
     private LanguageManager languageManager;
+    @Getter
+    private me.raikou.duels.manager.RequestManager requestManager;
 
     @Override
     public void onEnable() {
@@ -58,6 +60,7 @@ public class DuelsPlugin extends JavaPlugin {
         this.worldManager = new me.raikou.duels.world.WorldManager(this);
         this.discordManager = new me.raikou.duels.discord.DiscordManager(this);
         this.languageManager = new LanguageManager(this);
+        this.requestManager = new me.raikou.duels.manager.RequestManager(this);
 
         // Storage
         String type = getConfig().getString("storage.type", "sqlite");
