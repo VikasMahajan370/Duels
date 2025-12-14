@@ -8,8 +8,13 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.bukkit.command.TabCompleter;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
+import org.bukkit.util.StringUtil;
 
-public class DuelCommand implements CommandExecutor {
+public class DuelCommand implements CommandExecutor, TabCompleter {
 
     private final DuelsPlugin plugin;
 
@@ -167,6 +172,14 @@ public class DuelCommand implements CommandExecutor {
                     player.sendMessage("Usage: /duel admin arena setspawn <name> <1|2|spectator>");
                     return;
                 }
+                String name2 = args[3]; // Re-use name variable logic properly or just use args[3]
+                // Wait, logic above used 'name ' variable which is args[3].
+
+                if (!plugin.getConfig().contains("arenas." + name)) {
+                    me.raikou.duels.util.MessageUtil.sendError(player, "admin.arena-not-found", "%name%", name);
+                    return;
+                }
+
                 String type = args[4].toLowerCase();
                 Location loc = player.getLocation();
                 String path = "arenas." + name + ".";
@@ -241,5 +254,71 @@ public class DuelCommand implements CommandExecutor {
                     "<dark_gray>▪</dark_gray> <yellow>/duel admin reload</yellow>"));
         }
         player.sendMessage(me.raikou.duels.util.MessageUtil.parse(" "));
+    }
+
+    @Override
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias,
+            @NotNull String[] args) {
+        List<String> completions = new ArrayList<>();
+        List<String> commands = new ArrayList<>();
+
+        if (args.length == 1) {
+            commands.add("join");
+            commands.add("leave");
+            commands.add("invite");
+            commands.add("accept");
+            commands.add("deny");
+            commands.add("stats");
+            commands.add("help");
+            if (sender.hasPermission("duels.admin")) {
+                commands.add("admin");
+            }
+            StringUtil.copyPartialMatches(args[0], commands, completions);
+        } else if (args.length == 2) {
+            if (args[0].equalsIgnoreCase("join")) {
+                commands.addAll(plugin.getKitManager().getKits().keySet());
+            } else if (args[0].equalsIgnoreCase("invite") || args[0].equalsIgnoreCase("accept")
+                    || args[0].equalsIgnoreCase("deny") || args[0].equalsIgnoreCase("stats")) {
+                return null; // Return null to show online players
+            } else if (args[0].equalsIgnoreCase("admin")) {
+                if (sender.hasPermission("duels.admin")) {
+                    commands.add("arena");
+                    commands.add("kit");
+                    commands.add("setlobby");
+                    commands.add("reload");
+                }
+            }
+            StringUtil.copyPartialMatches(args[1], commands, completions);
+        } else if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("invite")) {
+                commands.addAll(plugin.getKitManager().getKits().keySet());
+            } else if (args[0].equalsIgnoreCase("admin")) {
+                if (args[1].equalsIgnoreCase("arena")) {
+                    commands.add("create");
+                    commands.add("setspawn");
+                } else if (args[1].equalsIgnoreCase("kit")) {
+                    commands.add("create");
+                }
+            }
+            StringUtil.copyPartialMatches(args[2], commands, completions);
+        } else if (args.length == 4) {
+            if (args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("arena")) {
+                if (args[2].equalsIgnoreCase("setspawn")) {
+                    commands.addAll(plugin.getArenaManager().getArenas().keySet());
+                }
+            }
+            StringUtil.copyPartialMatches(args[3], commands, completions);
+        } else if (args.length == 5) {
+            if (args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("arena")
+                    && args[2].equalsIgnoreCase("setspawn")) {
+                commands.add("1");
+                commands.add("2");
+                commands.add("spectator");
+            }
+            StringUtil.copyPartialMatches(args[4], commands, completions);
+        }
+
+        Collections.sort(completions);
+        return completions;
     }
 }

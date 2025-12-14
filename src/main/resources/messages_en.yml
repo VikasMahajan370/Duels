@@ -39,11 +39,11 @@ admin:
   kit-created: "Kit <yellow>%kit%</yellow> created from your inventory."
   arena-created: "Arena %name% created. Please set spawns (1, 2, spectator)."
   spawn-set: "Spawn %type% set for arena %name%."
+  arena-not-found: "Arena <yellow>%name%</yellow> does not exist."
 
 editor:
   kit-not-found: "Kit not found."
   instructions: "Rearrange your inventory. Click the <green>Emerald Block</green> (Inventory) to save."
-  saved: "Kit layout saved!"
   saved: "Kit layout saved!"
   cancelled: "Editing cancelled."
 

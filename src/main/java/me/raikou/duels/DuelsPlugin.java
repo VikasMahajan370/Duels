@@ -72,13 +72,16 @@ public class DuelsPlugin extends JavaPlugin {
         this.storage.connect();
 
         // Commands
-        getCommand("duel").setExecutor(new me.raikou.duels.command.DuelCommand(this));
+        me.raikou.duels.command.DuelCommand duelCommand = new me.raikou.duels.command.DuelCommand(this);
+        getCommand("duel").setExecutor(duelCommand);
+        getCommand("duel").setTabCompleter(duelCommand);
         getCommand("lobby").setExecutor(new me.raikou.duels.command.LobbyCommand(this));
         getCommand("stats").setExecutor(new me.raikou.duels.command.StatsCommand(this));
 
         // Listeners
         getServer().getPluginManager().registerEvents(new me.raikou.duels.listener.DuelListener(this), this);
         getServer().getPluginManager().registerEvents(new me.raikou.duels.listener.MotdListener(this), this);
+        getServer().getPluginManager().registerEvents(new me.raikou.duels.listener.WorldListener(this), this);
 
         // Scoreboard
         new me.raikou.duels.util.BoardManager(this);

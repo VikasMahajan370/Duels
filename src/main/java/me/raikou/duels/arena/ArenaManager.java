@@ -23,6 +23,10 @@ public class ArenaManager {
         loadArenas();
     }
 
+    public Map<String, Arena> getArenas() {
+        return arenas;
+    }
+
     public void loadArenas() {
         arenas.clear();
         FileConfiguration config = plugin.getConfig();

@@ -27,49 +27,29 @@ storage:
 # /duel admin arena create <name>
 # /duel admin arena setspawn <name> <1|2|spectator>
 arenas:
-  example_arena:
-    world: world
+  forest:
+    world: arena
     spawn1:
-      x: 100.5
-      y: 64.0
-      z: 100.5
-      yaw: 0.0
-      pitch: 0.0
+      world: arena
+      x: -71.37647107287847
+      y: 167.0
+      z: 74.58604485933752
+      yaw: 179.70483
+      pitch: -1.8016151
     spawn2:
-      x: 120.5
-      y: 64.0
-      z: 100.5
-      yaw: 180.0
-      pitch: 0.0
+      world: arena
+      x: -71.64052817428286
+      y: 167.0
+      z: -2.419456788517925
+      yaw: 0.07312012
+      pitch: -2.0685403
     spectator:
-      x: 110.5
-      y: 70.0
-      z: 100.5
-      yaw: 90.0
-      pitch: 0.0
-  arena1:
-    world: world
-    spawn1:
-      world: world
-      x: -2.195573142304901
-      y: 39.0
-      z: 49.29088038506679
-      yaw: 179.70355
-      pitch: 1.0010649
-    spawn2:
-      world: world
-      x: -3.0945676118188956
-      y: 39.0
-      z: -37.725919378915705
-      yaw: 0.8048706
-      pitch: 0.0668818
-    spectator:
-      world: world
-      x: 46.32110097412201
-      y: 97.0
-      z: 15.745162494025259
-      yaw: 109.64105
-      pitch: 47.31104
+      world: arena
+      x: -61.308983908519544
+      y: 189.0
+      z: 36.44622896680132
+      yaw: 89.822205
+      pitch: 38.168865
 
 # ==========================================
 #                KITS
@@ -146,12 +126,12 @@ scoreboard:
 #         DISCORD LOGGING
 # ==========================================
 discord:
-  enabled: true
+  enabled: false
   # Options: WEBHOOK, BOT
   mode: WEBHOOK
-  webhook-url: "https://discord.com/api/webhooks/YOUR_WEBHOOK_URL"
-  bot-token: "YOUR_BOT_TOKEN"
-  channel-id: "YOUR_CHANNEL_ID"
+  webhook-url: https://discord.com/api/webhooks/YOUR_WEBHOOK_URL
+  bot-token: YOUR_BOT_TOKEN
+  channel-id: YOUR_CHANNEL_ID
   events:
     duel-start: true
     duel-end: true
@@ -162,9 +142,9 @@ discord:
 #               MODERN MOTD
 # ==========================================
 motd:
-  enabled: true
+  enabled: false
   # Use <newline> for multiple lines if not using the list format automatically joined.
   # Placeholders: %online%, %max%, %version%, %date%
   lines:
-    - "     <gradient:#00AAFF:#00FFFF><bold>RAIKOU DUELS</bold></gradient>     "
-    - "   <gray>Practice & Competitive PvP</gray>   "
+  - '     <gradient:#00AAFF:#00FFFF><bold>RAIKOU DUELS</bold></gradient>     '
+  - '   <gray>Practice & Competitive PvP</gray>   '

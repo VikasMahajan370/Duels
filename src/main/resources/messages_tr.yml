@@ -39,11 +39,11 @@ admin:
   kit-created: "<yellow>%kit%</yellow> kiti envanterinizden oluşturuldu."
   arena-created: "Arena %name% oluşturuldu. Lütfen doğma noktalarını ayarlayın (1, 2, spectator)."
   spawn-set: "Arena %name% için %type% noktası ayarlandı."
+  arena-not-found: "Arena <yellow>%name%</yellow> bulunamadı."
 
 editor:
   kit-not-found: "Kit bulunamadı."
   instructions: "Envanterinizi düzenleyin. Kaydetmek için <green>Zümrüt Bloğa</green> (Envanter) tıklayın."
-  saved: "Kit düzeni kaydedildi!"
   saved: "Kit düzeni kaydedildi!"
   cancelled: "Düzenleme iptal edildi."
 
