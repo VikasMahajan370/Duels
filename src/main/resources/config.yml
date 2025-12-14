@@ -342,3 +342,18 @@ chat:
   # Permissions
   color-permission: "duels.chat.color"
   bypass-cooldown: "duels.chat.bypass"
+
+# ==========================================
+#            SPECTATOR SYSTEM
+# ==========================================
+# Configuration for the duel spectator system.
+spectator:
+  enabled: true
+  # Allow spectators to use commands while watching
+  allow-commands: false
+  # Blocked commands while spectating (if allow-commands is true)
+  blocked-commands:
+    - "duel"
+    - "msg"
+    - "tell"
+    - "w"

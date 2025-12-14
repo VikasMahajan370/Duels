@@ -54,6 +54,10 @@ public class DuelsPlugin extends JavaPlugin {
     private me.raikou.duels.util.TabManager tabManager;
     @Getter
     private me.raikou.duels.chat.ChatManager chatManager;
+    @Getter
+    private me.raikou.duels.spectator.SpectatorManager spectatorManager;
+    @Getter
+    private me.raikou.duels.spectator.SpectatorGui spectatorGui;
 
     @Override
     public void onEnable() {
@@ -126,6 +130,10 @@ public class DuelsPlugin extends JavaPlugin {
 
         // Chat Formatter
         this.chatManager = new me.raikou.duels.chat.ChatManager(this);
+
+        // Spectator System
+        this.spectatorManager = new me.raikou.duels.spectator.SpectatorManager(this);
+        this.spectatorGui = new me.raikou.duels.spectator.SpectatorGui(this);
 
         getLogger().info("Duels Core Plugin has been enabled!");
     }

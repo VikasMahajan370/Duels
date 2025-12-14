@@ -11,7 +11,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -29,6 +31,22 @@ public class Duel {
     private final String kitName;
     @Getter
     private final boolean ranked;
+    @Getter
+    private final Set<UUID> spectators = new HashSet<>();
+
+    /**
+     * Add a spectator to this duel.
+     */
+    public void addSpectator(UUID uuid) {
+        spectators.add(uuid);
+    }
+
+    /**
+     * Remove a spectator from this duel.
+     */
+    public void removeSpectator(UUID uuid) {
+        spectators.remove(uuid);
+    }
 
     public Duel(DuelsPlugin plugin, Arena arena, List<UUID> players, String kitName, org.bukkit.World instanceWorld,
             boolean isRanked) {
@@ -123,6 +141,11 @@ public class Duel {
                     p.teleport(Bukkit.getWorlds().get(0).getSpawnLocation());
                 }
             }
+        }
+
+        // Remove spectators
+        if (plugin.getSpectatorManager() != null) {
+            plugin.getSpectatorManager().removeAllFromDuel(this);
         }
 
         // Remove from manager

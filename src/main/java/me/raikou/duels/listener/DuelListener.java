@@ -74,6 +74,11 @@ public class DuelListener implements Listener {
                     plugin.getLeaderboardCommand().openLeaderboardGui(event.getPlayer());
                     event.setCancelled(true);
                 }
+                // Spectate - Eye of Ender
+                else if (item.getType() == org.bukkit.Material.ENDER_EYE && plainName.contains("Spectate")) {
+                    plugin.getSpectatorGui().openGui(event.getPlayer());
+                    event.setCancelled(true);
+                }
             }
         }
     }

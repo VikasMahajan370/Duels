@@ -79,6 +79,18 @@ gui:
     info-lore:
       - "<gray>Updates every <white>%duration%<gray> seconds"
       - "<gray>Showing top <white>%count%<gray> players"
+  spectator:
+    title: "<gradient:#9333EA:#DB2777><bold>Active Duels</bold></gradient>"
+    item-name: "<yellow>%player1% <gray>vs</gray> %player2%"
+    lore:
+      - ""
+      - " <gray>Kit:</gray> <aqua>%kit%</aqua>"
+      - " <gray>Arena:</gray> <yellow>%arena%</yellow>"
+      - " <gray>Duration:</gray> <white>%duration%</white>"
+      - " <gray>Spectators:</gray> <green>%spectators%</green>"
+      - ""
+      - " <green>► Click to spectate</green>"
+    no-duels: "<gray>No active duels at the moment."
 
 titles:
   duel-start:
@@ -124,3 +136,13 @@ ping:
 chat:
   cooldown: "<red>Please wait <yellow>%time%s</yellow> before sending another message."
   duplicate: "<red>You cannot send the same message twice in a row."
+
+spectator:
+  started: "<green>You are now spectating <yellow>%player1%</yellow> vs <yellow>%player2%</yellow>."
+  stopped: "<gray>You stopped spectating."
+  not-spectating: "<red>You are not spectating any duel."
+  no-active-duels: "<red>There are no active duels to spectate."
+  duel-ended: "<gray>The duel you were watching has ended."
+  already-spectating: "<red>You are already spectating a duel!"
+  cannot-spectate-self: "<red>You cannot spectate your own duel!"
+  blocked-command: "<red>You cannot use commands while spectating!"

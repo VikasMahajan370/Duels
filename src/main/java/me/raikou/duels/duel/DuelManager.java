@@ -135,4 +135,11 @@ public class DuelManager {
     public boolean isInDuel(Player player) {
         return playerDuelMap.containsKey(player.getUniqueId());
     }
+
+    /**
+     * Get all active duels (unmodifiable set).
+     */
+    public Set<Duel> getActiveDuels() {
+        return Collections.unmodifiableSet(activeDuels);
+    }
 }

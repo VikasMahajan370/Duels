@@ -79,6 +79,18 @@ gui:
     info-lore:
       - "<gray>Her <white>%duration%<gray> saniyede güncellenir"
       - "<gray>En iyi <white>%count%<gray> oyuncu gösteriliyor"
+  spectator:
+    title: "<gradient:#9333EA:#DB2777><bold>Aktif Düellolar</bold></gradient>"
+    item-name: "<yellow>%player1% <gray>vs</gray> %player2%"
+    lore:
+      - ""
+      - " <gray>Kit:</gray> <aqua>%kit%</aqua>"
+      - " <gray>Arena:</gray> <yellow>%arena%</yellow>"
+      - " <gray>Süre:</gray> <white>%duration%</white>"
+      - " <gray>İzleyiciler:</gray> <green>%spectators%</green>"
+      - ""
+      - " <green>► İzlemek için tıkla</green>"
+    no-duels: "<gray>Şu anda aktif düello yok."
 
 titles:
   duel-start:
@@ -124,3 +136,13 @@ ping:
 chat:
   cooldown: "<red>Başka bir mesaj göndermeden önce <yellow>%time% saniye</yellow> bekle."
   duplicate: "<red>Aynı mesajı arka arkaya gönderemezsin."
+
+spectator:
+  started: "<green>Şu anda <yellow>%player1%</yellow> vs <yellow>%player2%</yellow> izliyorsunuz."
+  stopped: "<gray>İzlemeyi bıraktınız."
+  not-spectating: "<red>Herhangi bir düelloyu izlemiyorsunuz."
+  no-active-duels: "<red>İzlenecek aktif düello yok."
+  duel-ended: "<gray>İzlediğiniz düello sona erdi."
+  already-spectating: "<red>Zaten bir düelloyu izliyorsunuz!"
+  cannot-spectate-self: "<red>Kendi düellonuzu izleyemezsiniz!"
+  blocked-command: "<red>İzlerken komut kullanamazsınız!"

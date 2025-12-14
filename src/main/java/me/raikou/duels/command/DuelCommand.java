@@ -96,7 +96,18 @@ public class DuelCommand implements CommandExecutor, TabCompleter {
                 break;
 
             case "leave":
-                plugin.getQueueManager().removeFromQueue(player);
+                // Handle both queue leave and spectator leave
+                if (plugin.getSpectatorManager().isSpectating(player)) {
+                    plugin.getSpectatorManager().stopSpectating(player);
+                } else {
+                    plugin.getQueueManager().removeFromQueue(player);
+                }
+                break;
+
+            case "spectate":
+            case "spec":
+            case "watch":
+                handleSpectate(player, args);
                 break;
 
             case "admin":
@@ -209,6 +220,47 @@ public class DuelCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    /**
+     * Handle the /duel spectate command.
+     * Opens spectator GUI or directly spectates a player's duel.
+     */
+    private void handleSpectate(Player player, String[] args) {
+        // Check if player is already in a duel
+        if (plugin.getDuelManager().isInDuel(player)) {
+            me.raikou.duels.util.MessageUtil.sendError(player, "spectator.cannot-spectate-self");
+            return;
+        }
+
+        // Check if already spectating
+        if (plugin.getSpectatorManager().isSpectating(player)) {
+            me.raikou.duels.util.MessageUtil.sendError(player, "spectator.already-spectating");
+            return;
+        }
+
+        // If no player specified, open the GUI
+        if (args.length < 2) {
+            plugin.getSpectatorGui().openGui(player);
+            return;
+        }
+
+        // Try to spectate a specific player's duel
+        String targetName = args[1];
+        Player target = org.bukkit.Bukkit.getPlayer(targetName);
+
+        if (target == null) {
+            me.raikou.duels.util.MessageUtil.sendError(player, "general.player-not-found");
+            return;
+        }
+
+        me.raikou.duels.duel.Duel duel = plugin.getDuelManager().getDuel(target);
+        if (duel == null) {
+            me.raikou.duels.util.MessageUtil.sendError(player, "spectator.no-active-duels");
+            return;
+        }
+
+        plugin.getSpectatorManager().startSpectating(player, duel);
+    }
+
     private void sendPluginInfo(Player player) {
         player.sendMessage(me.raikou.duels.util.MessageUtil.parse(
                 "<newline><gradient:#FFD700:#FFA500><bold>DUELS CORE</bold></gradient> <gray>v"
@@ -238,6 +290,8 @@ public class DuelCommand implements CommandExecutor, TabCompleter {
                 "<dark_gray>▪</dark_gray> <yellow>/duel accept <player></yellow> <gray>Accept request</gray>"));
         player.sendMessage(me.raikou.duels.util.MessageUtil.parse(
                 "<dark_gray>▪</dark_gray> <yellow>/duel deny <player></yellow> <gray>Deny request</gray>"));
+        player.sendMessage(me.raikou.duels.util.MessageUtil.parse(
+                "<dark_gray>▪</dark_gray> <yellow>/duel spectate</yellow> <gray>Watch active duels</gray>"));
 
         if (player.hasPermission("duels.admin")) {
             player.sendMessage(
@@ -269,6 +323,7 @@ public class DuelCommand implements CommandExecutor, TabCompleter {
             commands.add("accept");
             commands.add("deny");
             commands.add("stats");
+            commands.add("spectate");
             commands.add("help");
             if (sender.hasPermission("duels.admin")) {
                 commands.add("admin");

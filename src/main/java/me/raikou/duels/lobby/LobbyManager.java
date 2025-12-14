@@ -116,9 +116,21 @@ public class LobbyManager {
             leaderboard.setItemMeta(lbMeta);
         }
 
+        // Spectate - Eye of Ender
+        org.bukkit.inventory.ItemStack spectateItem = new org.bukkit.inventory.ItemStack(
+                org.bukkit.Material.ENDER_EYE);
+        org.bukkit.inventory.meta.ItemMeta spectateMeta = spectateItem.getItemMeta();
+        if (spectateMeta != null) {
+            spectateMeta.displayName(
+                    me.raikou.duels.util.MessageUtil
+                            .parse("<light_purple><bold>Spectate</bold></light_purple> <gray>(Right Click)"));
+            spectateItem.setItemMeta(spectateMeta);
+        }
+
         player.getInventory().setItem(0, unrankedItem);
         player.getInventory().setItem(1, rankedItem);
         player.getInventory().setItem(4, editor);
+        player.getInventory().setItem(7, spectateItem);
         player.getInventory().setItem(8, leaderboard);
         player.setHealth(20);
         player.setFoodLevel(20);
