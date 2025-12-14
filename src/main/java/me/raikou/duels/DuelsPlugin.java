@@ -58,10 +58,13 @@ public class DuelsPlugin extends JavaPlugin {
     private me.raikou.duels.spectator.SpectatorManager spectatorManager;
     @Getter
     private me.raikou.duels.spectator.SpectatorGui spectatorGui;
+    @Getter
+    private long enableTime;
 
     @Override
     public void onEnable() {
         instance = this;
+        this.enableTime = System.currentTimeMillis();
 
         // Load Config
         saveDefaultConfig();

@@ -247,13 +247,54 @@ discord:
 # ==========================================
 #               MODERN MOTD
 # ==========================================
+# Enhanced MOTD with hover player sample and dynamic placeholders.
+#
+# PLACEHOLDERS:
+#   Player Counts:
+#     %online%       - Online players
+#     %max%          - Max players
+#     %in_duel%      - Players in duel
+#     %in_queue%     - Players in queue
+#     %active_duels% - Active duel count
+#     %spectators%   - Spectator count
+#
+#   Server Info:
+#     %version%        - Plugin version
+#     %server_version% - Server version
+#     %bukkit_version% - Bukkit version
+#
+#   Time:
+#     %date%   - Current date (dd/MM/yyyy)
+#     %time%   - Current time (HH:mm)
+#     %day%    - Day of week
+#     %uptime% - Server uptime
+#
+#   System:
+#     %memory% - Memory usage
+#     %tps%    - Server TPS (Paper only)
+#
 motd:
-  enabled: false
-  # Use <newline> for multiple lines if not using the list format automatically joined.
-  # Placeholders: %online%, %max%, %version%, %date%
+  enabled: true
+  max-players: 100
   lines:
-  - '     <gradient:#00AAFF:#00FFFF><bold>RAIKOU DUELS</bold></gradient>     '
-  - '   <gray>Practice & Competitive PvP</gray>   '
+    - '        <bold><gradient:#6366F1:#8B5CF6>✦ RAIKOU DUELS ✦</gradient></bold>'
+    - '   <gray>Practice PvP</gray> <dark_gray>•</dark_gray> <aqua>%online%</aqua><gray>/</gray><white>%max%</white> <dark_gray>•</dark_gray> <yellow>%active_duels% Duels</yellow>'
+  
+  # Player sample (hover over player count)
+  player-sample:
+    enabled: true
+    show-players: true
+    max-players: 12
+    # Custom lines shown before player list
+    lines:
+      - '§6§l✦ RAIKOU DUELS ✦'
+      - ''
+      - '§7▸ Online: §f%online%§7/%max%'
+      - '§7▸ In Duel: §c%in_duel%'
+      - '§7▸ In Queue: §e%in_queue%'
+      - '§7▸ Active Duels: §a%active_duels%'
+      - ''
+      - '§e§lOnline Players:'
 
 # ==========================================
 #              RANKED SYSTEM
