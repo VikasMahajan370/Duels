@@ -20,6 +20,10 @@ public class KitManager {
         loadKits();
     }
 
+    public Map<String, Kit> getKits() {
+        return kits;
+    }
+
     public void loadKits() {
         kits.clear();
         ConfigurationSection kitsSection = plugin.getConfig().getConfigurationSection("kits");

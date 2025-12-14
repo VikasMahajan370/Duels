@@ -125,6 +125,7 @@ public class Duel {
                 p.setFoodLevel(20);
                 if (plugin.getLobbyManager().isLobbySet()) {
                     plugin.getLobbyManager().teleportToLobby(p);
+                    plugin.getLobbyManager().giveLobbyItems(p);
                 } else {
                     p.teleport(arena.getSpectatorSpawn()); // Fallback or basic world spawn
                 }

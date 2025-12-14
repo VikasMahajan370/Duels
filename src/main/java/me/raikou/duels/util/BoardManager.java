@@ -48,42 +48,90 @@ public class BoardManager {
             player.setScoreboard(board);
         }
 
+        String titleRaw = plugin.getConfig().getString("scoreboard.title",
+                "<bold><gradient:#FFD700:#FFA500> DUELS </gradient></bold>");
+        net.kyori.adventure.text.Component titleComp = me.raikou.duels.util.MessageUtil.parse(titleRaw);
+
         Objective obj = board.getObjective("sidebar");
         if (obj == null) {
-            obj = board.registerNewObjective("sidebar", Criteria.DUMMY, me.raikou.duels.util.MessageUtil
-                    .parse("<bold><gradient:#FFD700:#FFA500> DUELS </gradient></bold>"));
+            obj = board.registerNewObjective("sidebar", Criteria.DUMMY, titleComp);
             obj.setDisplaySlot(DisplaySlot.SIDEBAR);
+        } else {
+            obj.displayName(titleComp);
         }
 
         Duel duel = plugin.getDuelManager().getDuel(player);
+        java.util.List<String> lines;
 
+        if (duel != null) {
+            lines = plugin.getConfig().getStringList("scoreboard.game");
+        } else {
+            lines = plugin.getConfig().getStringList("scoreboard.lobby");
+        }
+
+        // Clear existing scores
         for (String entry : board.getEntries()) {
             board.resetScores(entry);
         }
 
-        if (duel != null) {
-            // Game Board
-            obj.getScore("§7<gray>  " + java.time.LocalDate.now().toString()).setScore(10);
-            obj.getScore("§1").setScore(9);
-            obj.getScore("§fOpponent:").setScore(8);
-            obj.getScore("§c " + getOpponentName(player, duel)).setScore(7);
-            obj.getScore("§2").setScore(6);
-            obj.getScore("§fMap:").setScore(5);
-            obj.getScore("§a " + duel.getArena().getName()).setScore(4);
-            obj.getScore("§3").setScore(3);
-            obj.getScore("§epvp.raikou.com").setScore(1);
-        } else {
-            // Lobby Board
-            obj.getScore("§7<gray>  " + java.time.LocalDate.now().toString()).setScore(10);
-            obj.getScore("§1").setScore(9);
-            obj.getScore("§fOnline:").setScore(8);
-            obj.getScore("§a " + Bukkit.getOnlinePlayers().size()).setScore(7);
-            obj.getScore("§2").setScore(6);
-            obj.getScore("§fIn Queue:").setScore(5);
-            obj.getScore("§e " + (plugin.getQueueManager().isInQueue(player) ? "Yes" : "No")).setScore(4);
-            obj.getScore("§3").setScore(3);
-            obj.getScore("§epvp.raikou.com").setScore(1);
+        // Process lines in reverse order (Scoreboard scores go down)
+        int score = lines.size();
+        for (String line : lines) {
+            // Replace Placeholders
+            line = line.replace("%date%", java.time.LocalDate.now().toString());
+            line = line.replace("%online%", String.valueOf(Bukkit.getOnlinePlayers().size()));
+            line = line.replace("%queue%", plugin.getQueueManager().isInQueue(player) ? "Yes" : "No");
+
+            if (duel != null) {
+                line = line.replace("%opponent%", getOpponentName(player, duel));
+                line = line.replace("%map%", duel.getArena().getName());
+            } else {
+                line = line.replace("%opponent%", "None");
+                line = line.replace("%map%", "None");
+            }
+
+            // Fix for ParsingException: Convert legacy § codes to MiniMessage tags or
+            // remove them
+            // This allows users to mix legacy and new formats without crashing.
+            line = convertLegacyToMiniMessage(line);
+
+            // Convert MiniMessage to Legacy because Bukkit Scoreboard entries (String)
+            // don't support Components directly as entries unless using teams.
+            // But for simple lines, we need legacy string.
+            // Using LegacyComponentSerializer to convert <gray> props to §7
+            net.kyori.adventure.text.Component comp = me.raikou.duels.util.MessageUtil.parse(line);
+            String legacyLine = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
+                    .serialize(comp);
+
+            obj.getScore(legacyLine).setScore(score);
+            score--;
         }
+    }
+
+    private String convertLegacyToMiniMessage(String text) {
+        return text
+                .replace("§0", "<black>")
+                .replace("§1", "<dark_blue>")
+                .replace("§2", "<dark_green>")
+                .replace("§3", "<dark_aqua>")
+                .replace("§4", "<dark_red>")
+                .replace("§5", "<dark_purple>")
+                .replace("§6", "<gold>")
+                .replace("§7", "<gray>")
+                .replace("§8", "<dark_gray>")
+                .replace("§9", "<blue>")
+                .replace("§a", "<green>")
+                .replace("§b", "<aqua>")
+                .replace("§c", "<red>")
+                .replace("§d", "<light_purple>")
+                .replace("§e", "<yellow>")
+                .replace("§f", "<white>")
+                .replace("§k", "<obfuscated>")
+                .replace("§l", "<bold>")
+                .replace("§m", "<strikethrough>")
+                .replace("§n", "<underlined>")
+                .replace("§o", "<italic>")
+                .replace("§r", "<reset>");
     }
 
     private String getOpponentName(Player player, Duel duel) {

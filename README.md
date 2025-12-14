@@ -38,7 +38,7 @@
 ## Building from Source
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/Duels.git
+git clone https://github.com/devRaikou/Duels.git
 cd Duels
 mvn clean package
 ```

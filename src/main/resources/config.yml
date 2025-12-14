@@ -62,3 +62,30 @@ kits:
       chestplate: "DIAMOND_CHESTPLATE:1"
       leggings: "DIAMOND_LEGGINGS:1"
       boots: "DIAMOND_BOOTS:1"
+
+# ==========================================
+#             SCOREBOARD
+# ==========================================
+# Use MiniMessage format <red>, <gradient:red:blue>, etc.
+scoreboard:
+  title: "<bold><gradient:#FFD700:#FFA500> DUELS </gradient></bold>"
+  lobby:
+    - "§7<gray>  %date%"
+    - "§1"
+    - "§fOnline:"
+    - "§a %online%"
+    - "§2"
+    - "§fIn Queue:"
+    - "§e %queue%"
+    - "§3"
+    - "§eplay.raikou.dev"
+  game:
+    - "§7<gray>  %date%"
+    - "§1"
+    - "§fOpponent:"
+    - "§c %opponent%"
+    - "§2"
+    - "§fMap:"
+    - "§a %map%"
+    - "§3"
+    - "§eplay.raikou.dev"

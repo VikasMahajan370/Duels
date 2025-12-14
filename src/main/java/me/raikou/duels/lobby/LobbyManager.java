@@ -70,4 +70,21 @@ public class LobbyManager {
     public Location getLobbyLocation() {
         return lobbyLocation;
     }
+
+    public void giveLobbyItems(Player player) {
+        player.getInventory().clear();
+
+        org.bukkit.inventory.ItemStack compass = new org.bukkit.inventory.ItemStack(org.bukkit.Material.COMPASS);
+        org.bukkit.inventory.meta.ItemMeta meta = compass.getItemMeta();
+        if (meta != null) {
+            meta.displayName(
+                    me.raikou.duels.util.MessageUtil.parse("<gold><bold>Play Duels</bold> <gray>(Right Click)"));
+            compass.setItemMeta(meta);
+        }
+
+        player.getInventory().setItem(0, compass);
+        player.setHealth(20);
+        player.setFoodLevel(20);
+        player.setGameMode(org.bukkit.GameMode.ADVENTURE);
+    }
 }

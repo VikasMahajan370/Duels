@@ -24,6 +24,32 @@ public class DuelListener implements Listener {
         Player player = event.getPlayer();
         if (plugin.getLobbyManager().isLobbySet()) {
             plugin.getLobbyManager().teleportToLobby(player);
+            plugin.getLobbyManager().giveLobbyItems(player);
+        }
+    }
+
+    @EventHandler
+    public void onRespawn(org.bukkit.event.player.PlayerRespawnEvent event) {
+        Player player = event.getPlayer();
+        // Give items if respawning in lobby context, or just generally allow them to
+        // have it.
+        // For now, always give on respawn if we are in lobby mode or not in game
+        if (plugin.getDuelManager().getDuel(player) == null) {
+            plugin.getLobbyManager().giveLobbyItems(player);
+        }
+    }
+
+    @EventHandler
+    public void onInteract(org.bukkit.event.player.PlayerInteractEvent event) {
+        if (event.getAction().name().contains("RIGHT")) {
+            org.bukkit.inventory.ItemStack item = event.getItem();
+            if (item != null && item.getType() == org.bukkit.Material.COMPASS) {
+                if (item.getItemMeta().displayName() != null) {
+                    // Start GUI
+                    plugin.getGuiManager().openQueueGui(event.getPlayer());
+                    event.setCancelled(true);
+                }
+            }
         }
     }
 

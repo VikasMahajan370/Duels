@@ -91,4 +91,10 @@ public class QueueManager {
         }
         return false;
     }
+
+    public int getQueueSize(String kitName) {
+        // Assuming SOLO queue for GUI display for now
+        LinkedList<UUID> list = queues.get(QueueType.SOLO).get(kitName);
+        return list != null ? list.size() : 0;
+    }
 }
