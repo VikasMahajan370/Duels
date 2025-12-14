@@ -1,5 +1,5 @@
 name: Duels
-version: 1.9.3-SNAPSHOT
+version: 1.9.4-SNAPSHOT
 main: me.raikou.duels.DuelsPlugin
 api-version: 1.21
 authors: [Raikou]

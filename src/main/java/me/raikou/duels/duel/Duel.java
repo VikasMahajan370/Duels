@@ -25,6 +25,8 @@ public class Duel {
     private final List<UUID> alivePlayers;
     @Setter
     private DuelState state;
+    @Getter
+    private long startTime;
 
     public Duel(DuelsPlugin plugin, Arena arena, List<UUID> players, org.bukkit.World instanceWorld) {
         this.plugin = plugin;
@@ -60,6 +62,7 @@ public class Duel {
             public void run() {
                 if (count == 0) {
                     state = DuelState.FIGHTING;
+                    startTime = System.currentTimeMillis();
                     for (UUID uuid : players) {
                         Player p = Bukkit.getPlayer(uuid);
                         if (p != null) {
@@ -140,6 +143,8 @@ public class Duel {
             plugin.getStatsManager().addWin(winnerPlayer);
             plugin.getStatsManager().addKill(winnerPlayer); // Assume winner got the kill
         }
+
+        plugin.getDiscordManager().onDuelEnd(this, winner);
 
         for (UUID uuid : players) {
             Player p = Bukkit.getPlayer(uuid);

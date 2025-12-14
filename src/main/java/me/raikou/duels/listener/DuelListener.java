@@ -23,6 +23,7 @@ public class DuelListener implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         plugin.getStatsManager().loadStats(player);
+        plugin.getDiscordManager().onPlayerJoin(player);
         if (plugin.getLobbyManager().isLobbySet()) {
             plugin.getLobbyManager().teleportToLobby(player);
             plugin.getLobbyManager().giveLobbyItems(player);
@@ -70,6 +71,7 @@ public class DuelListener implements Listener {
         plugin.getStatsManager().saveStats(player);
         plugin.getQueueManager().removeFromQueue(player);
         plugin.getKitEditorManager().cancelEditing(player);
+        plugin.getDiscordManager().onPlayerQuit(player);
 
         Duel duel = plugin.getDuelManager().getDuel(player);
         if (duel != null) {

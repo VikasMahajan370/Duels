@@ -4,20 +4,20 @@
 
 # Settings used for general plugin behavior
 settings:
-  debug: false   # Enable debug messages in console
-  
+  debug: false # Enable debug messages in console
+
 storage:
   # Type of storage: 'mysql' or 'sqlite'
   # sqlite: Using local file (database.db) in plugin folder. No setup required.
   # mysql: Using external MySQL server. Requires credentials.
-  type: "sqlite"
+  type: sqlite
   
   mysql:
-    host: "localhost"
+    host: localhost
     port: 3306
-    database: "duels"
-    username: "root"
-    password: ""
+    database: duels
+    username: root
+    password: ''
 
 # ==========================================
 #               ARENAS
@@ -27,7 +27,7 @@ storage:
 # /duel admin arena setspawn <name> <1|2|spectator>
 arenas:
   example_arena:
-    world: "world"
+    world: world
     spawn1:
       x: 100.5
       y: 64.0
@@ -41,11 +41,34 @@ arenas:
       yaw: 180.0
       pitch: 0.0
     spectator:
-       x: 110.5
-       y: 70.0
-       z: 100.5
-       yaw: 90.0
-       pitch: 0.0
+      x: 110.5
+      y: 70.0
+      z: 100.5
+      yaw: 90.0
+      pitch: 0.0
+  arena1:
+    world: world
+    spawn1:
+      world: world
+      x: -2.195573142304901
+      y: 39.0
+      z: 49.29088038506679
+      yaw: 179.70355
+      pitch: 1.0010649
+    spawn2:
+      world: world
+      x: -3.0945676118188956
+      y: 39.0
+      z: -37.725919378915705
+      yaw: 0.8048706
+      pitch: 0.0668818
+    spectator:
+      world: world
+      x: 46.32110097412201
+      y: 97.0
+      z: 15.745162494025259
+      yaw: 109.64105
+      pitch: 47.31104
 
 # ==========================================
 #                KITS
@@ -55,37 +78,74 @@ arenas:
 kits:
   default:
     items:
-      - "DIAMOND_SWORD:1"
-      - "GOLDEN_APPLE:5"
+    - DIAMOND_SWORD:1
+    - GOLDEN_APPLE:5
     armor:
-      helmet: "DIAMOND_HELMET:1"
-      chestplate: "DIAMOND_CHESTPLATE:1"
-      leggings: "DIAMOND_LEGGINGS:1"
-      boots: "DIAMOND_BOOTS:1"
+      helmet: DIAMOND_HELMET:1
+      chestplate: DIAMOND_CHESTPLATE:1
+      leggings: DIAMOND_LEGGINGS:1
+      boots: DIAMOND_BOOTS:1
+  SG:
+    items:
+    - IRON_SWORD:1
+    - FLINT_AND_STEEL:1
+    - FISHING_ROD:1
+    - BOW:1
+    - GOLDEN_APPLE:1
+    - APPLE:4
+    - ARROW:10
+    armor:
+      helmet: IRON_HELMET:1
+      chestplate: IRON_CHESTPLATE:1
+      leggings: IRON_LEGGINGS:1
+      boots: IRON_BOOTS:1
+lobby:
+  world: lobby
+  x: 392.93352684868114
+  y: 238.5
+  z: -93.1821015480136
+  yaw: 89.64877
+  pitch: 5.756008
 
 # ==========================================
 #             SCOREBOARD
 # ==========================================
 # Use MiniMessage format <red>, <gradient:red:blue>, etc.
 scoreboard:
-  title: "<bold><gradient:#FFD700:#FFA500> DUELS </gradient></bold>"
+  title: <bold><gradient:#FFD700:#FFA500> DUELS </gradient></bold>
   lobby:
-    - "§7<gray>  %date%"
-    - "§1"
-    - "§fOnline:"
-    - "§a %online%"
-    - "§2"
-    - "§fIn Queue:"
-    - "§e %queue%"
-    - "§3"
-    - "§eplay.raikou.dev"
+  - §7<gray>  %date%
+  - §1
+  - '§fOnline:'
+  - §a %online%
+  - §2
+  - '§fIn Queue:'
+  - §e %queue%
+  - §3
+  - §eplay.raikou.dev
   game:
-    - "§7<gray>  %date%"
-    - "§1"
-    - "§fOpponent:"
-    - "§c %opponent%"
-    - "§2"
-    - "§fMap:"
-    - "§a %map%"
-    - "§3"
-    - "§eplay.raikou.dev"
+  - §7<gray>  %date%
+  - §1
+  - '§fOpponent:'
+  - §c %opponent%
+  - §2
+  - '§fMap:'
+  - §a %map%
+  - §3
+  - §eplay.raikou.dev
+
+# ==========================================
+#         DISCORD LOGGING
+# ==========================================
+discord:
+  enabled: true
+  # Options: WEBHOOK, BOT
+  mode: WEBHOOK
+  webhook-url: "https://discord.com/api/webhooks/YOUR_WEBHOOK_URL"
+  bot-token: "YOUR_BOT_TOKEN"
+  channel-id: "YOUR_CHANNEL_ID"
+  events:
+    duel-start: true
+    duel-end: true
+    player-join: true
+    player-quit: true

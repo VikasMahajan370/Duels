@@ -54,6 +54,7 @@ public class DuelManager {
         playerDuelMap.put(p2.getUniqueId(), duel);
 
         duel.start();
+        plugin.getDiscordManager().onDuelStart(duel, kitName);
     }
 
     private void applyKit(Player player, Kit kit, String kitName) {
