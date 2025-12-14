@@ -59,6 +59,8 @@ public class DuelsPlugin extends JavaPlugin {
     @Getter
     private me.raikou.duels.spectator.SpectatorGui spectatorGui;
     @Getter
+    private me.raikou.duels.combat.CombatManager combatManager;
+    @Getter
     private long enableTime;
 
     @Override
@@ -137,6 +139,15 @@ public class DuelsPlugin extends JavaPlugin {
         // Spectator System
         this.spectatorManager = new me.raikou.duels.spectator.SpectatorManager(this);
         this.spectatorGui = new me.raikou.duels.spectator.SpectatorGui(this);
+
+        // Combat System (1.8 Legacy PvP)
+        this.combatManager = new me.raikou.duels.combat.CombatManager(this);
+        getServer().getPluginManager().registerEvents(combatManager, this);
+        getServer().getPluginManager().registerEvents(combatManager.getDamageHandler(), this);
+        getServer().getPluginManager().registerEvents(combatManager.getKnockbackHandler(), this);
+        getServer().getPluginManager().registerEvents(combatManager.getBlockHandler(), this);
+        getServer().getPluginManager().registerEvents(combatManager.getShieldHandler(), this);
+        getServer().getPluginManager().registerEvents(combatManager.getGoldenAppleHandler(), this);
 
         getLogger().info("Duels Core Plugin has been enabled!");
     }

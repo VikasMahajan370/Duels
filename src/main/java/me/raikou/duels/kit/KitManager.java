@@ -54,7 +54,25 @@ public class KitManager {
             ItemStack leggings = parseItem(section.getString("armor.leggings"));
             ItemStack boots = parseItem(section.getString("armor.boots"));
 
-            Kit kit = new Kit(key, icon, items, helmet, chestplate, leggings, boots);
+            // Load knockback settings (per-kit overrides)
+            double horizontalKB = section.getDouble("knockback.horizontal", -1);
+            double verticalKB = section.getDouble("knockback.vertical", -1);
+            double rodHorizontalKB = section.getDouble("knockback.rod-horizontal", -1);
+            double rodVerticalKB = section.getDouble("knockback.rod-vertical", -1);
+
+            Kit kit = Kit.builder()
+                    .name(key)
+                    .icon(icon)
+                    .items(items)
+                    .helmet(helmet)
+                    .chestplate(chestplate)
+                    .leggings(leggings)
+                    .boots(boots)
+                    .horizontalKB(horizontalKB)
+                    .verticalKB(verticalKB)
+                    .rodHorizontalKB(rodHorizontalKB)
+                    .rodVerticalKB(rodVerticalKB)
+                    .build();
             kits.put(key, kit);
         }
         plugin.getLogger().info("Loaded " + kits.size() + " kits.");

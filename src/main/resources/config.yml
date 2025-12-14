@@ -17,6 +17,40 @@ server:
 combat:
   # Enable 1.8 legacy PvP mechanics (no attack cooldown, no sweep attacks)
   legacy-pvp: true
+  
+  # Knockback settings (1.8 style)
+  knockback:
+    horizontal: 0.36          # Base horizontal knockback (0.34-0.38 recommended)
+    vertical: 0.32            # Base vertical knockback (0.30-0.34 recommended)
+    sprint-multiplier: 1.0    # Extra KB when sprinting
+    kb-enchant-multiplier: 0.4 # KB per enchantment level
+    # Rod knockback defaults (used when kit has no custom values)
+    rod-horizontal: 0.65      # Fishing rod horizontal knockback
+    rod-vertical: 0.40        # Fishing rod vertical knockback
+    
+  # Fake sword blocking (mechanic only - no animation)
+  # Right-click with sword applies damage reduction
+  sword-block:
+    enabled: true
+    damage-reduction: 0.5     # 50% damage reduction while blocking
+    cooldown-ticks: 6         # Cooldown between blocks (6 ticks = 300ms)
+    duration-ticks: 20        # Max block duration (20 ticks = 1 second)
+    
+  # Damage normalization to 1.8 values
+  damage:
+    use-1-8-values: true      # Use 1.8 weapon damage values
+    remove-crits: true        # Remove critical hit bonus
+    remove-sweeping: true     # Remove sweeping edge damage
+    
+  # Golden Apple behavior
+  golden-apple:
+    remove-cooldown: true     # Remove 1.9+ gapple cooldown
+    use-1-8-effects: true     # Use 1.8 absorption/regen values
+    
+  # Shield prevention
+  shields:
+    disable-completely: true  # Completely disable shield usage
+
 
 # ==========================================
 #            ANTI-CHEAT
@@ -85,6 +119,11 @@ arenas:
 # ==========================================
 # Kits can be created via in-game command:
 # /duel admin kit create <name> (Will copy your current inventory)
+# Per-kit knockback settings:
+# knockback.horizontal - Custom horizontal KB (leave empty or -1 to use default)
+# knockback.vertical - Custom vertical KB
+# knockback.rod-horizontal - Custom rod horizontal KB
+# knockback.rod-vertical - Custom rod vertical KB
 kits:
   SG:
     icon: IRON_SWORD
@@ -101,6 +140,7 @@ kits:
       chestplate: IRON_CHESTPLATE:1
       leggings: IRON_LEGGINGS:1
       boots: IRON_BOOTS:1
+    # SG uses default knockback
 
   NoDebuff:
     icon: SPLASH_POTION
@@ -126,6 +166,10 @@ kits:
       chestplate: DIAMOND_CHESTPLATE:1
       leggings: DIAMOND_LEGGINGS:1
       boots: DIAMOND_BOOTS:1
+    # Combo kit uses higher knockback for longer combos
+    knockback:
+      horizontal: 0.42
+      vertical: 0.36
 
   BuildUHC:
     icon: COBBLESTONE
@@ -148,6 +192,11 @@ kits:
     icon: STICK
     items: []
     armor: {}
+    # Sumo uses very high knockback
+    knockback:
+      horizontal: 0.55
+      vertical: 0.42
+
 
   Archer:
     icon: BOW

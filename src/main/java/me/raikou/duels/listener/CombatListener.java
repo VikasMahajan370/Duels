@@ -2,21 +2,16 @@ package me.raikou.duels.listener;
 
 import me.raikou.duels.DuelsPlugin;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.FishHook;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerFishEvent;
-import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
@@ -24,10 +19,11 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Implements 1.8 combat mechanics in modern Minecraft versions.
- * - Removes attack cooldown (instant attack speed)
- * - Disables sweep attacks
- * - Fishing rod knockback (push away with hit effect)
+ * Handles fishing rod mechanics for 1.8 PvP style combat.
+ * 
+ * Note: Attack cooldown and sweep attack handling has been moved to
+ * CombatManager.
+ * This listener now only handles fishing rod knockback behavior.
  */
 public class CombatListener implements Listener {
 
@@ -40,37 +36,12 @@ public class CombatListener implements Listener {
         this.enabled = plugin.getConfig().getBoolean("combat.legacy-pvp", true);
 
         if (enabled) {
-            plugin.getLogger().info("1.8 Legacy PvP combat system enabled!");
+            plugin.getLogger().info("1.8 Legacy PvP fishing rod mechanics enabled!");
         }
     }
 
     public boolean isEnabled() {
         return enabled;
-    }
-
-    @EventHandler
-    public void onJoin(PlayerJoinEvent event) {
-        if (!enabled)
-            return;
-        applyLegacyCombat(event.getPlayer());
-    }
-
-    @EventHandler
-    public void onItemSwitch(PlayerItemHeldEvent event) {
-        if (!enabled)
-            return;
-        applyLegacyCombat(event.getPlayer());
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onDamage(EntityDamageByEntityEvent event) {
-        if (!enabled)
-            return;
-
-        // Disable sweep attack damage
-        if (event.getCause() == EntityDamageByEntityEvent.DamageCause.ENTITY_SWEEP_ATTACK) {
-            event.setCancelled(true);
-        }
     }
 
     /**
@@ -141,8 +112,16 @@ public class CombatListener implements Listener {
             knockback.normalize();
         }
 
-        double horizontalStrength = 0.5;
-        double verticalStrength = 0.35;
+        // Get per-kit rod knockback values from CombatManager
+        double horizontalStrength = 0.65; // Default increased rod knockback
+        double verticalStrength = 0.40; // Default increased rod knockback
+
+        if (plugin.getCombatManager() != null) {
+            double[] rodKB = plugin.getCombatManager().getKnockbackHandler().getRodKnockbackForPlayer(fisher);
+            horizontalStrength = rodKB[0];
+            verticalStrength = rodKB[1];
+        }
+
         Vector finalVelocity = knockback.multiply(horizontalStrength).setY(verticalStrength);
 
         Bukkit.getScheduler().runTask(plugin, () -> {
@@ -172,36 +151,6 @@ public class CombatListener implements Listener {
             if (nearby.getLocation().distance(target.getLocation()) < 20) {
                 nearby.playSound(target.getLocation(), Sound.ENTITY_PLAYER_HURT, 0.8f, 1.0f);
             }
-        }
-    }
-
-    /**
-     * Apply 1.8 combat mechanics to a player.
-     */
-    public void applyLegacyCombat(Player player) {
-        if (!enabled)
-            return;
-
-        try {
-            AttributeInstance attackSpeed = player.getAttribute(Attribute.GENERIC_ATTACK_SPEED);
-            if (attackSpeed != null) {
-                attackSpeed.setBaseValue(1024.0);
-            }
-        } catch (Exception e) {
-            plugin.getLogger().warning("Could not apply legacy combat - ATTACK_SPEED attribute not found!");
-        }
-    }
-
-    /**
-     * Reset player to default combat mechanics.
-     */
-    public void resetCombat(Player player) {
-        try {
-            AttributeInstance attackSpeed = player.getAttribute(Attribute.GENERIC_ATTACK_SPEED);
-            if (attackSpeed != null) {
-                attackSpeed.setBaseValue(4.0);
-            }
-        } catch (Exception ignored) {
         }
     }
 }
