@@ -49,7 +49,17 @@ public class WorldManager {
             return null;
         }
 
-        return Bukkit.createWorld(new WorldCreator(instanceName));
+        World world = Bukkit.createWorld(new WorldCreator(instanceName));
+
+        // Disable advancement announcements and other arena settings
+        if (world != null) {
+            world.setGameRule(org.bukkit.GameRule.ANNOUNCE_ADVANCEMENTS, false);
+            world.setGameRule(org.bukkit.GameRule.DO_MOB_SPAWNING, false);
+            world.setGameRule(org.bukkit.GameRule.DO_DAYLIGHT_CYCLE, false);
+            world.setGameRule(org.bukkit.GameRule.DO_WEATHER_CYCLE, false);
+        }
+
+        return world;
     }
 
     public void deleteDuelWorld(String worldName) {

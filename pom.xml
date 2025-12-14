@@ -6,7 +6,7 @@
 
     <groupId>me.raikou</groupId>
     <artifactId>Duels</artifactId>
-    <version>1.9.4-SNAPSHOT</version>
+    <version>1.9.5</version>
     <packaging>jar</packaging>
 
     <name>Duels</name>
