@@ -10,6 +10,8 @@ general:
   lobby-not-set: "Lobi ayarlanmamış!"
   player-not-found: "Oyuncu bulunamadı veya çevrimdışı."
   console-usage: "Konsoldan kullanımda bir oyuncu belirtmelisiniz."
+  match-not-found: "Maç bulunamadı veya süresi dolmuş."
+  kit-not-found: "Kit bulunamadı."
 
 stats:
   header: "<newline><gradient:#FFD700:#FFA500><bold>İSTATİSTİKLER</bold></gradient> <dark_gray>▪</dark_gray> <yellow>%player%</yellow>"
@@ -91,6 +93,31 @@ gui:
       - ""
       - " <green>► İzlemek için tıkla</green>"
     no-duels: "<gray>Şu anda aktif düello yok."
+  match-result:
+    title: "<dark_gray>Maç %matchId%"
+    inventory-title: "<dark_gray>Envanter: %player%"
+    match-info: "<gold>Maç Bilgisi"
+    match-info-lore:
+      - "<gray>Kit: <white>%kit%"
+      - "<gray>Tür: %type%"
+      - "<gray>Süre: <white>%duration%"
+    winner-label: "<gold>★ KAZANAN ★"
+    loser-label: "<gray>✗ KAYBEDEN ✗"
+    health: "<gray>Can: <red>%health%"
+    elo: "<gray>ELO: <yellow>%elo% %change%"
+    click-inventory: "<green>▶ Envanteri görüntülemek için tıkla"
+    back-button: "<yellow>← Maça Geri Dön"
+    ranked: "<gold>Dereceli"
+    unranked: "<green>Derecesiz"
+
+match-chat:
+  kill-message: "<red>%loser%<gray> öldürüldü <green>%winner%<gray> tarafından <red>(%health%)"
+  header: "<yellow><bold>Maç Sonuçları</bold> <dark_gray>(Görüntülemek için tıkla)"
+  winner-line: "<gray>Kazanan: <green>%winner%"
+  winner-line-ranked: "<gray>Kazanan: <green>%winner% <yellow>(%elo%) <green>(+%change%)"
+  loser-line: "<gray>Kaybeden: <red>%loser%"
+  loser-line-ranked: "<gray>Kaybeden: <red>%loser% <yellow>(%elo%) <red>(%change%)"
+  hover-text: "<green>Maç detaylarını görmek için tıkla"
 
 titles:
   duel-start:

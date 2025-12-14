@@ -10,6 +10,8 @@ general:
   lobby-not-set: "Lobby is not set!"
   player-not-found: "Player not found or offline."
   console-usage: "Console must specify a player."
+  match-not-found: "Match not found or has expired."
+  kit-not-found: "Kit not found."
 
 stats:
   header: "<newline><gradient:#FFD700:#FFA500><bold>STATISTICS</bold></gradient> <dark_gray>▪</dark_gray> <yellow>%player%</yellow>"
@@ -91,6 +93,31 @@ gui:
       - ""
       - " <green>► Click to spectate</green>"
     no-duels: "<gray>No active duels at the moment."
+  match-result:
+    title: "<dark_gray>Match %matchId%"
+    inventory-title: "<dark_gray>Inventory: %player%"
+    match-info: "<gold>Match Info"
+    match-info-lore:
+      - "<gray>Kit: <white>%kit%"
+      - "<gray>Type: %type%"
+      - "<gray>Duration: <white>%duration%"
+    winner-label: "<gold>★ WINNER ★"
+    loser-label: "<gray>✗ LOSER ✗"
+    health: "<gray>Health: <red>%health%"
+    elo: "<gray>ELO: <yellow>%elo% %change%"
+    click-inventory: "<green>▶ Click to view inventory"
+    back-button: "<yellow>← Back to Match"
+    ranked: "<gold>Ranked"
+    unranked: "<green>Unranked"
+
+match-chat:
+  kill-message: "<red>%loser%<gray> was slain by <green>%winner%<red> (%health%)"
+  header: "<yellow><bold>Match Results</bold> <dark_gray>(Click to view)"
+  winner-line: "<gray>Winner: <green>%winner%"
+  winner-line-ranked: "<gray>Winner: <green>%winner% <yellow>(%elo%) <green>(+%change%)"
+  loser-line: "<gray>Loser: <red>%loser%"
+  loser-line-ranked: "<gray>Loser: <red>%loser% <yellow>(%elo%) <red>(%change%)"
+  hover-text: "<green>Click to view match details"
 
 titles:
   duel-start:

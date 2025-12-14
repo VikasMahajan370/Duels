@@ -5,14 +5,18 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Manages the leaderboard cache and provides access to top players.
+ * Now supports all players who have played at least one duel (not just
+ * winners).
  */
 public class LeaderboardManager {
 
     private final DuelsPlugin plugin;
     private List<LeaderboardEntry> cachedLeaderboard = new ArrayList<>();
+    private int totalPlayerCount = 0;
     private long lastUpdateTime = 0;
     private int cacheSeconds = 60;
     private int topCount = 10;
@@ -42,11 +46,17 @@ public class LeaderboardManager {
 
     /**
      * Refresh the leaderboard cache from database.
+     * This is now called automatically after every duel ends.
      */
     public void refreshCache() {
         plugin.getStorage().getTopPlayers(topCount).thenAccept(entries -> {
             cachedLeaderboard = entries;
             lastUpdateTime = System.currentTimeMillis();
+            plugin.getLogger().info("[Leaderboard] Cache refreshed with " + entries.size() + " entries.");
+        });
+
+        plugin.getStorage().getTotalPlayerCount().thenAccept(count -> {
+            totalPlayerCount = count;
         });
     }
 
@@ -78,6 +88,13 @@ public class LeaderboardManager {
     }
 
     /**
+     * Get total number of players who have played.
+     */
+    public int getTotalPlayerCount() {
+        return totalPlayerCount;
+    }
+
+    /**
      * Check if the cache is populated.
      */
     public boolean isCacheReady() {
@@ -86,5 +103,14 @@ public class LeaderboardManager {
 
     public long getLastUpdateTime() {
         return lastUpdateTime;
+    }
+
+    /**
+     * Get player's position in leaderboard asynchronously.
+     */
+    public void getPlayerRank(UUID uuid, java.util.function.Consumer<Integer> callback) {
+        plugin.getStorage().getPlayerRank(uuid).thenAccept(rank -> {
+            org.bukkit.Bukkit.getScheduler().runTask(plugin, () -> callback.accept(rank));
+        });
     }
 }

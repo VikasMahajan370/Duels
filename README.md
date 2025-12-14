@@ -95,7 +95,7 @@ combat:
 
 | Command | Description |
 |---------|-------------|
-| `/duel <player> [kit]` | Send a duel request |
+| `/duel invite <player> [kit]` | Send a duel request |
 | `/duel accept/deny <player>` | Accept or deny requests |
 | `/lobby` | Return to lobby |
 | `/stats [player]` | View statistics |

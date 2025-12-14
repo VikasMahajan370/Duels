@@ -110,6 +110,19 @@ public class DuelCommand implements CommandExecutor, TabCompleter {
                 handleSpectate(player, args);
                 break;
 
+            case "matchresult":
+                if (args.length < 2) {
+                    me.raikou.duels.util.MessageUtil.sendError(player, "Usage: <yellow>/duel matchresult <matchId>");
+                    return true;
+                }
+                String matchId = args[1];
+                if (plugin.getMatchHistoryManager().hasMatch(matchId)) {
+                    plugin.getMatchResultGui().openMatchGui(player, matchId);
+                } else {
+                    me.raikou.duels.util.MessageUtil.sendError(player, "general.match-not-found");
+                }
+                break;
+
             case "admin":
                 if (!player.hasPermission("duels.admin")) {
                     me.raikou.duels.util.MessageUtil.sendError(player, "general.no-permission");

@@ -1,6 +1,7 @@
 package me.raikou.duels.storage;
 
 import me.raikou.duels.leaderboard.LeaderboardEntry;
+import me.raikou.duels.stats.PlayerStats;
 
 import java.util.List;
 import java.util.UUID;
@@ -12,21 +13,52 @@ public interface Storage {
 
     void disconnect();
 
-    CompletableFuture<Void> saveUser(UUID uuid, String name, int wins, int losses, int kills, int deaths);
+    /**
+     * Save complete user stats including streak and last played.
+     */
+    CompletableFuture<Void> saveUser(UUID uuid, String name, PlayerStats stats);
 
-    // Returns array: [wins, losses, kills, deaths]
-    CompletableFuture<int[]> loadUser(UUID uuid);
+    /**
+     * Legacy save method for backwards compatibility.
+     */
+    default CompletableFuture<Void> saveUser(UUID uuid, String name, int wins, int losses, int kills, int deaths) {
+        return saveUser(uuid, name, new PlayerStats(wins, losses, kills, deaths));
+    }
+
+    /**
+     * Load complete user stats.
+     */
+    CompletableFuture<PlayerStats> loadUserStats(UUID uuid);
+
+    /**
+     * Legacy load method - returns [wins, losses, kills, deaths].
+     */
+    default CompletableFuture<int[]> loadUser(UUID uuid) {
+        return loadUserStats(uuid).thenApply(
+                stats -> new int[] { stats.getWins(), stats.getLosses(), stats.getKills(), stats.getDeaths() });
+    }
 
     CompletableFuture<Void> saveKitLayout(UUID uuid, String kitName, String layoutData);
 
-    // Returns layoutData string or null
     CompletableFuture<String> loadKitLayout(UUID uuid, String kitName);
 
-    // ELO per kit
     CompletableFuture<Integer> loadElo(UUID uuid, String kitName);
 
     CompletableFuture<Void> saveElo(UUID uuid, String kitName, int elo);
 
-    // Leaderboard - returns top players sorted by wins DESC
+    /**
+     * Get top players sorted by total games (wins + losses) first, then by wins.
+     * Includes ALL players who have played at least one game.
+     */
     CompletableFuture<List<LeaderboardEntry>> getTopPlayers(int limit);
+
+    /**
+     * Get total count of players in leaderboard.
+     */
+    CompletableFuture<Integer> getTotalPlayerCount();
+
+    /**
+     * Get player's rank in leaderboard.
+     */
+    CompletableFuture<Integer> getPlayerRank(UUID uuid);
 }

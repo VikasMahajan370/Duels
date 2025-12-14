@@ -66,18 +66,29 @@ public class Duel {
         Player p1 = Bukkit.getPlayer(players.get(0));
         Player p2 = Bukkit.getPlayer(players.get(1));
 
+        // Store original walk speeds for restoration
+        java.util.Map<UUID, Float> originalWalkSpeeds = new java.util.HashMap<>();
+
         if (p1 != null) {
             Location loc1 = arena.getSpawn1().clone();
             loc1.setWorld(instanceWorld);
             p1.teleport(loc1);
+
+            // Freeze player
+            originalWalkSpeeds.put(p1.getUniqueId(), p1.getWalkSpeed());
+            freezePlayer(p1);
         }
         if (p2 != null) {
             Location loc2 = arena.getSpawn2().clone();
             loc2.setWorld(instanceWorld);
             p2.teleport(loc2);
+
+            // Freeze player
+            originalWalkSpeeds.put(p2.getUniqueId(), p2.getWalkSpeed());
+            freezePlayer(p2);
         }
 
-        // Simple countdown
+        // Countdown with freeze
         new BukkitRunnable() {
             int count = 5;
 
@@ -86,9 +97,14 @@ public class Duel {
                 if (count == 0) {
                     state = DuelState.FIGHTING;
                     startTime = System.currentTimeMillis();
+
+                    // Unfreeze players and show titles
                     for (UUID uuid : players) {
                         Player p = Bukkit.getPlayer(uuid);
                         if (p != null) {
+                            float originalSpeed = originalWalkSpeeds.getOrDefault(uuid, 0.2f);
+                            unfreezePlayer(p, originalSpeed);
+
                             p.showTitle(net.kyori.adventure.title.Title.title(
                                     me.raikou.duels.util.MessageUtil.getRaw("titles.duel-start.title"),
                                     me.raikou.duels.util.MessageUtil.getRaw("titles.duel-start.subtitle")));
@@ -98,6 +114,7 @@ public class Duel {
                                     "%kit%", kitName));
                         }
                     }
+                    originalWalkSpeeds.clear();
                     cancel();
                     return;
                 }
@@ -115,6 +132,34 @@ public class Duel {
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L);
+    }
+
+    /**
+     * Freeze a player during countdown.
+     */
+    private void freezePlayer(Player player) {
+        // Set walk speed to 0
+        player.setWalkSpeed(0f);
+        player.setFlySpeed(0f);
+
+        // Add slowness and jump boost effects to prevent any movement
+        player.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                org.bukkit.potion.PotionEffectType.SLOWNESS, 200, 255, false, false, false));
+        player.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                org.bukkit.potion.PotionEffectType.JUMP_BOOST, 200, 250, false, false, false));
+    }
+
+    /**
+     * Unfreeze a player after countdown.
+     */
+    private void unfreezePlayer(Player player, float originalWalkSpeed) {
+        // Restore original walk speed
+        player.setWalkSpeed(originalWalkSpeed);
+        player.setFlySpeed(0.1f);
+
+        // Remove freeze effects
+        player.removePotionEffect(org.bukkit.potion.PotionEffectType.SLOWNESS);
+        player.removePotionEffect(org.bukkit.potion.PotionEffectType.JUMP_BOOST);
     }
 
     // reset logic
@@ -171,55 +216,137 @@ public class Duel {
         Player winnerPlayer = Bukkit.getPlayer(winner);
         String winnerName = winnerPlayer != null ? winnerPlayer.getName() : "Unknown";
 
+        // Find loser
+        UUID loser = null;
+        for (UUID uuid : players) {
+            if (!uuid.equals(winner)) {
+                loser = uuid;
+                break;
+            }
+        }
+        Player loserPlayer = loser != null ? Bukkit.getPlayer(loser) : null;
+        String loserName = loserPlayer != null ? loserPlayer.getName() : "Unknown";
+
+        // Capture inventories before reset
+        List<org.bukkit.inventory.ItemStack> winnerInventory = new ArrayList<>();
+        org.bukkit.inventory.ItemStack[] winnerArmor = null;
+        List<org.bukkit.inventory.ItemStack> loserInventory = new ArrayList<>();
+        org.bukkit.inventory.ItemStack[] loserArmor = null;
+
         if (winnerPlayer != null) {
-            plugin.getStatsManager().addWin(winnerPlayer);
-            plugin.getStatsManager().addKill(winnerPlayer); // Assume winner got the kill
+            for (org.bukkit.inventory.ItemStack item : winnerPlayer.getInventory().getContents()) {
+                winnerInventory.add(item != null ? item.clone() : null);
+            }
+            winnerArmor = winnerPlayer.getInventory().getArmorContents().clone();
+        }
+        if (loserPlayer != null) {
+            for (org.bukkit.inventory.ItemStack item : loserPlayer.getInventory().getContents()) {
+                loserInventory.add(item != null ? item.clone() : null);
+            }
+            loserArmor = loserPlayer.getInventory().getArmorContents().clone();
+        }
+
+        // Calculate match duration
+        long durationMs = System.currentTimeMillis() - startTime;
+
+        // Generate unique match ID
+        String matchId = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+
+        // Record stats using new methods (auto-saves and refreshes leaderboard)
+        if (winnerPlayer != null) {
+            plugin.getStatsManager().recordWin(winnerPlayer);
+        }
+        if (loserPlayer != null) {
+            plugin.getStatsManager().recordLoss(loserPlayer);
         }
 
         plugin.getDiscordManager().onDuelEnd(this, winner);
 
+        // Show titles
         for (UUID uuid : players) {
             Player p = Bukkit.getPlayer(uuid);
             if (p != null) {
-                if (!uuid.equals(winner)) {
-                    plugin.getStatsManager().addLoss(p);
-                    plugin.getStatsManager().addDeath(p);
-                }
-
                 p.showTitle(net.kyori.adventure.title.Title.title(
                         me.raikou.duels.util.MessageUtil.getRaw("titles.duel-end.title"),
                         me.raikou.duels.util.MessageUtil.getRaw("titles.duel-end.subtitle", "%winner%", winnerName)));
-                if (uuid.equals(winner)) {
-                    // Logic to find the opponent name for the winner
-                    String opponentName = "Unknown";
-                    for (UUID other : players) {
-                        if (!other.equals(winner)) {
-                            Player op = Bukkit.getPlayer(other);
-                            if (op != null)
-                                opponentName = op.getName();
-                            break;
-                        }
-                    }
-                    p.sendMessage(me.raikou.duels.util.MessageUtil.get("duel.end-winner", "%opponent%",
-                            opponentName));
-                } else {
-                    p.sendMessage(me.raikou.duels.util.MessageUtil.get("duel.end-loser", "%opponent%", winnerName));
-                }
             }
         }
 
-        // Handle ELO for ranked duels
-        if (ranked) {
-            UUID loser = null;
-            for (UUID uuid : players) {
-                if (!uuid.equals(winner)) {
-                    loser = uuid;
-                    break;
-                }
-            }
-            if (loser != null) {
-                updateElo(winner, loser);
-            }
+        // Handle ELO for ranked duels and create match result
+        final UUID finalLoser = loser;
+        final List<org.bukkit.inventory.ItemStack> finalWinnerInventory = winnerInventory;
+        final org.bukkit.inventory.ItemStack[] finalWinnerArmor = winnerArmor;
+        final List<org.bukkit.inventory.ItemStack> finalLoserInventory = loserInventory;
+        final org.bukkit.inventory.ItemStack[] finalLoserArmor = loserArmor;
+        final double winnerHealth = winnerPlayer != null ? winnerPlayer.getHealth() : 0;
+
+        if (ranked && loser != null) {
+            int eloGain = plugin.getConfig().getInt("ranked.elo-gain-base", 25);
+            int eloLoss = plugin.getConfig().getInt("ranked.elo-loss-base", 25);
+
+            plugin.getStorage().loadElo(winner, kitName).thenAccept(winnerElo -> {
+                plugin.getStorage().loadElo(finalLoser, kitName).thenAccept(loserElo -> {
+                    int newWinnerElo = winnerElo + eloGain;
+                    int newLoserElo = Math.max(100, loserElo - eloLoss);
+
+                    plugin.getStorage().saveElo(winner, kitName, newWinnerElo);
+                    plugin.getStorage().saveElo(finalLoser, kitName, newLoserElo);
+
+                    // Create and store match result
+                    me.raikou.duels.match.DuelResult result = me.raikou.duels.match.DuelResult.builder()
+                            .matchId(matchId)
+                            .timestamp(System.currentTimeMillis())
+                            .kitName(kitName)
+                            .ranked(true)
+                            .winnerUuid(winner)
+                            .winnerName(winnerName)
+                            .winnerHealth(winnerHealth)
+                            .winnerEloChange(eloGain)
+                            .winnerNewElo(newWinnerElo)
+                            .winnerInventory(finalWinnerInventory)
+                            .winnerArmor(finalWinnerArmor)
+                            .loserUuid(finalLoser)
+                            .loserName(loserName)
+                            .loserEloChange(-eloLoss)
+                            .loserNewElo(newLoserElo)
+                            .loserInventory(finalLoserInventory)
+                            .loserArmor(finalLoserArmor)
+                            .durationMs(durationMs)
+                            .build();
+
+                    plugin.getMatchHistoryManager().addMatch(result);
+
+                    // Send clickable match result messages
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        sendMatchResultMessage(result);
+                    });
+                });
+            });
+        } else {
+            // Unranked duel - create match result without ELO
+            me.raikou.duels.match.DuelResult result = me.raikou.duels.match.DuelResult.builder()
+                    .matchId(matchId)
+                    .timestamp(System.currentTimeMillis())
+                    .kitName(kitName)
+                    .ranked(false)
+                    .winnerUuid(winner)
+                    .winnerName(winnerName)
+                    .winnerHealth(winnerHealth)
+                    .winnerEloChange(0)
+                    .winnerNewElo(0)
+                    .winnerInventory(finalWinnerInventory)
+                    .winnerArmor(finalWinnerArmor)
+                    .loserUuid(finalLoser)
+                    .loserName(loserName)
+                    .loserEloChange(0)
+                    .loserNewElo(0)
+                    .loserInventory(finalLoserInventory)
+                    .loserArmor(finalLoserArmor)
+                    .durationMs(durationMs)
+                    .build();
+
+            plugin.getMatchHistoryManager().addMatch(result);
+            sendMatchResultMessage(result);
         }
 
         // Cleanup after delay
@@ -231,35 +358,76 @@ public class Duel {
         }.runTaskLater(plugin, 60L); // 3 seconds
     }
 
-    private void updateElo(UUID winner, UUID loser) {
-        int eloGain = plugin.getConfig().getInt("ranked.elo-gain-base", 25);
-        int eloLoss = plugin.getConfig().getInt("ranked.elo-loss-base", 25);
+    /**
+     * Send the match result message with clickable GUI opener.
+     */
+    private void sendMatchResultMessage(me.raikou.duels.match.DuelResult result) {
+        // Build kill message using localization
+        String killMsgTemplate = me.raikou.duels.util.MessageUtil.getString("match-chat.kill-message");
+        Component killMessage = me.raikou.duels.util.MessageUtil.parse(killMsgTemplate
+                .replace("%loser%", result.getLoserName())
+                .replace("%winner%", result.getWinnerName())
+                .replace("%health%", result.getFormattedWinnerHealth()));
 
-        // Load current ELOs and calculate changes
-        plugin.getStorage().loadElo(winner, kitName).thenAccept(winnerElo -> {
-            plugin.getStorage().loadElo(loser, kitName).thenAccept(loserElo -> {
-                // Simple ELO calculation (can be enhanced with proper ELO formula later)
-                int newWinnerElo = winnerElo + eloGain;
-                int newLoserElo = Math.max(100, loserElo - eloLoss); // Minimum 100 ELO
+        // Build clickable match results header
+        String headerText = me.raikou.duels.util.MessageUtil.getString("match-chat.header");
+        String hoverText = me.raikou.duels.util.MessageUtil.getString("match-chat.hover-text");
+        Component matchResultsHeader = net.kyori.adventure.text.Component.text("\n")
+                .append(me.raikou.duels.util.MessageUtil.parse(headerText))
+                .clickEvent(net.kyori.adventure.text.event.ClickEvent
+                        .runCommand("/duel matchresult " + result.getMatchId()))
+                .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(
+                        me.raikou.duels.util.MessageUtil.parse(hoverText)));
 
-                plugin.getStorage().saveElo(winner, kitName, newWinnerElo);
-                plugin.getStorage().saveElo(loser, kitName, newLoserElo);
+        // Build winner/loser info lines
+        Component winnerLine;
+        Component loserLine;
 
-                // Notify players
-                Bukkit.getScheduler().runTask(plugin, () -> {
-                    Player wp = Bukkit.getPlayer(winner);
-                    Player lp = Bukkit.getPlayer(loser);
-                    if (wp != null) {
-                        me.raikou.duels.util.MessageUtil.sendSuccess(wp, "ranked.elo-gain",
-                                "%amount%", String.valueOf(eloGain), "%elo%", String.valueOf(newWinnerElo));
-                    }
-                    if (lp != null) {
-                        me.raikou.duels.util.MessageUtil.sendError(lp, "ranked.elo-loss",
-                                "%amount%", String.valueOf(eloLoss), "%elo%", String.valueOf(newLoserElo));
-                    }
-                });
-            });
-        });
+        if (result.isRanked()) {
+            String winnerTemplate = me.raikou.duels.util.MessageUtil.getString("match-chat.winner-line-ranked");
+            winnerLine = me.raikou.duels.util.MessageUtil.parse(winnerTemplate
+                    .replace("%winner%", result.getWinnerName())
+                    .replace("%elo%", String.valueOf(result.getWinnerNewElo()))
+                    .replace("%change%", String.valueOf(result.getWinnerEloChange())));
+
+            String loserTemplate = me.raikou.duels.util.MessageUtil.getString("match-chat.loser-line-ranked");
+            loserLine = me.raikou.duels.util.MessageUtil.parse(loserTemplate
+                    .replace("%loser%", result.getLoserName())
+                    .replace("%elo%", String.valueOf(result.getLoserNewElo()))
+                    .replace("%change%", String.valueOf(result.getLoserEloChange())));
+        } else {
+            String winnerTemplate = me.raikou.duels.util.MessageUtil.getString("match-chat.winner-line");
+            winnerLine = me.raikou.duels.util.MessageUtil.parse(winnerTemplate
+                    .replace("%winner%", result.getWinnerName()));
+
+            String loserTemplate = me.raikou.duels.util.MessageUtil.getString("match-chat.loser-line");
+            loserLine = me.raikou.duels.util.MessageUtil.parse(loserTemplate
+                    .replace("%loser%", result.getLoserName()));
+        }
+
+        // Combine all components
+        Component fullMessage = killMessage
+                .append(matchResultsHeader)
+                .append(net.kyori.adventure.text.Component.text("\n"))
+                .append(winnerLine)
+                .append(net.kyori.adventure.text.Component.text("\n"))
+                .append(loserLine);
+
+        // Send to both players
+        for (UUID uuid : players) {
+            Player p = Bukkit.getPlayer(uuid);
+            if (p != null) {
+                p.sendMessage(fullMessage);
+            }
+        }
+
+        // Send to spectators
+        for (UUID uuid : spectators) {
+            Player p = Bukkit.getPlayer(uuid);
+            if (p != null) {
+                p.sendMessage(fullMessage);
+            }
+        }
     }
 
 }

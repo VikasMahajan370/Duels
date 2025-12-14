@@ -2,6 +2,7 @@ package me.raikou.duels.storage;
 
 import me.raikou.duels.DuelsPlugin;
 import me.raikou.duels.leaderboard.LeaderboardEntry;
+import me.raikou.duels.stats.PlayerStats;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -46,6 +47,7 @@ public class MySQLStorage implements Storage {
     }
 
     private void createTable() {
+        // Main stats table with extended fields
         try (PreparedStatement ps = connection.prepareStatement(
                 "CREATE TABLE IF NOT EXISTS duel_stats (" +
                         "uuid VARCHAR(36) PRIMARY KEY, " +
@@ -53,20 +55,22 @@ public class MySQLStorage implements Storage {
                         "wins INT DEFAULT 0, " +
                         "losses INT DEFAULT 0, " +
                         "kills INT DEFAULT 0, " +
-                        "deaths INT DEFAULT 0)")) {
+                        "deaths INT DEFAULT 0, " +
+                        "current_streak INT DEFAULT 0, " +
+                        "best_streak INT DEFAULT 0, " +
+                        "last_played BIGINT DEFAULT 0)")) {
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        // Add name column if it doesn't exist (migration)
-        try (PreparedStatement ps = connection.prepareStatement(
-                "ALTER TABLE duel_stats ADD COLUMN name VARCHAR(32) DEFAULT ''")) {
-            ps.executeUpdate();
-        } catch (SQLException ignored) {
-            // Column already exists
-        }
+        // Migration: Add new columns if they don't exist
+        addColumnIfNotExists("duel_stats", "name", "VARCHAR(32) DEFAULT ''");
+        addColumnIfNotExists("duel_stats", "current_streak", "INT DEFAULT 0");
+        addColumnIfNotExists("duel_stats", "best_streak", "INT DEFAULT 0");
+        addColumnIfNotExists("duel_stats", "last_played", "BIGINT DEFAULT 0");
 
+        // Kit layouts table
         try (PreparedStatement ps = connection.prepareStatement(
                 "CREATE TABLE IF NOT EXISTS kit_layouts (" +
                         "uuid VARCHAR(36), " +
@@ -78,6 +82,7 @@ public class MySQLStorage implements Storage {
             e.printStackTrace();
         }
 
+        // ELO ratings table
         try (PreparedStatement ps = connection.prepareStatement(
                 "CREATE TABLE IF NOT EXISTS elo_ratings (" +
                         "uuid VARCHAR(36), " +
@@ -87,6 +92,15 @@ public class MySQLStorage implements Storage {
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void addColumnIfNotExists(String table, String column, String definition) {
+        try (PreparedStatement ps = connection.prepareStatement(
+                "ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition)) {
+            ps.executeUpdate();
+        } catch (SQLException ignored) {
+            // Column already exists
         }
     }
 
@@ -101,22 +115,33 @@ public class MySQLStorage implements Storage {
     }
 
     @Override
-    public CompletableFuture<Void> saveUser(UUID uuid, String name, int wins, int losses, int kills, int deaths) {
+    public CompletableFuture<Void> saveUser(UUID uuid, String name, PlayerStats stats) {
         return CompletableFuture.runAsync(() -> {
             try (PreparedStatement ps = connection.prepareStatement(
-                    "INSERT INTO duel_stats (uuid, name, wins, losses, kills, deaths) VALUES (?,?,?,?,?,?) " +
-                            "ON DUPLICATE KEY UPDATE name=?, wins=?, losses=?, kills=?, deaths=?")) {
+                    "INSERT INTO duel_stats (uuid, name, wins, losses, kills, deaths, current_streak, best_streak, last_played) "
+                            +
+                            "VALUES (?,?,?,?,?,?,?,?,?) " +
+                            "ON DUPLICATE KEY UPDATE " +
+                            "name=?, wins=?, losses=?, kills=?, deaths=?, current_streak=?, best_streak=?, last_played=?")) {
+                // Insert values
                 ps.setString(1, uuid.toString());
                 ps.setString(2, name);
-                ps.setInt(3, wins);
-                ps.setInt(4, losses);
-                ps.setInt(5, kills);
-                ps.setInt(6, deaths);
-                ps.setString(7, name);
-                ps.setInt(8, wins);
-                ps.setInt(9, losses);
-                ps.setInt(10, kills);
-                ps.setInt(11, deaths);
+                ps.setInt(3, stats.getWins());
+                ps.setInt(4, stats.getLosses());
+                ps.setInt(5, stats.getKills());
+                ps.setInt(6, stats.getDeaths());
+                ps.setInt(7, stats.getCurrentStreak());
+                ps.setInt(8, stats.getBestStreak());
+                ps.setLong(9, stats.getLastPlayed());
+                // Update values
+                ps.setString(10, name);
+                ps.setInt(11, stats.getWins());
+                ps.setInt(12, stats.getLosses());
+                ps.setInt(13, stats.getKills());
+                ps.setInt(14, stats.getDeaths());
+                ps.setInt(15, stats.getCurrentStreak());
+                ps.setInt(16, stats.getBestStreak());
+                ps.setLong(17, stats.getLastPlayed());
                 ps.executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -125,23 +150,27 @@ public class MySQLStorage implements Storage {
     }
 
     @Override
-    public CompletableFuture<int[]> loadUser(UUID uuid) {
+    public CompletableFuture<PlayerStats> loadUserStats(UUID uuid) {
         return CompletableFuture.supplyAsync(() -> {
-            try (PreparedStatement ps = connection.prepareStatement("SELECT * FROM duel_stats WHERE uuid=?")) {
+            try (PreparedStatement ps = connection.prepareStatement(
+                    "SELECT wins, losses, kills, deaths, current_streak, best_streak, last_played " +
+                            "FROM duel_stats WHERE uuid=?")) {
                 ps.setString(1, uuid.toString());
                 ResultSet rs = ps.executeQuery();
                 if (rs.next()) {
-                    return new int[] {
+                    return new PlayerStats(
                             rs.getInt("wins"),
                             rs.getInt("losses"),
                             rs.getInt("kills"),
-                            rs.getInt("deaths")
-                    };
+                            rs.getInt("deaths"),
+                            rs.getInt("current_streak"),
+                            rs.getInt("best_streak"),
+                            rs.getLong("last_played"));
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-            return new int[] { 0, 0, 0, 0 };
+            return new PlayerStats(0, 0, 0, 0, 0, 0, 0);
         });
     }
 
@@ -219,8 +248,13 @@ public class MySQLStorage implements Storage {
     public CompletableFuture<List<LeaderboardEntry>> getTopPlayers(int limit) {
         return CompletableFuture.supplyAsync(() -> {
             List<LeaderboardEntry> entries = new ArrayList<>();
+            // Order by wins first, then total games, supports all players who played
             try (PreparedStatement ps = connection.prepareStatement(
-                    "SELECT uuid, name, wins, losses, kills, deaths FROM duel_stats ORDER BY wins DESC LIMIT ?")) {
+                    "SELECT uuid, name, wins, losses, kills, deaths, current_streak, best_streak, last_played " +
+                            "FROM duel_stats " +
+                            "WHERE (wins + losses) > 0 " +
+                            "ORDER BY wins DESC, (wins + losses) DESC, last_played DESC " +
+                            "LIMIT ?")) {
                 ps.setInt(1, limit);
                 ResultSet rs = ps.executeQuery();
                 while (rs.next()) {
@@ -230,12 +264,53 @@ public class MySQLStorage implements Storage {
                             rs.getInt("wins"),
                             rs.getInt("losses"),
                             rs.getInt("kills"),
-                            rs.getInt("deaths")));
+                            rs.getInt("deaths"),
+                            rs.getInt("current_streak"),
+                            rs.getInt("best_streak"),
+                            rs.getLong("last_played")));
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
             return entries;
+        });
+    }
+
+    @Override
+    public CompletableFuture<Integer> getTotalPlayerCount() {
+        return CompletableFuture.supplyAsync(() -> {
+            try (PreparedStatement ps = connection.prepareStatement(
+                    "SELECT COUNT(*) as count FROM duel_stats WHERE (wins + losses) > 0")) {
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    return rs.getInt("count");
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return 0;
+        });
+    }
+
+    @Override
+    public CompletableFuture<Integer> getPlayerRank(UUID uuid) {
+        return CompletableFuture.supplyAsync(() -> {
+            try (PreparedStatement ps = connection.prepareStatement(
+                    "SELECT COUNT(*) + 1 as `rank` FROM duel_stats " +
+                            "WHERE wins > (SELECT wins FROM duel_stats WHERE uuid = ?) " +
+                            "OR (wins = (SELECT wins FROM duel_stats WHERE uuid = ?) " +
+                            "AND (wins + losses) > (SELECT wins + losses FROM duel_stats WHERE uuid = ?))")) {
+                ps.setString(1, uuid.toString());
+                ps.setString(2, uuid.toString());
+                ps.setString(3, uuid.toString());
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    return rs.getInt("rank");
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return -1; // Not found
         });
     }
 }

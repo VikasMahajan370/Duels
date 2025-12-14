@@ -3,7 +3,8 @@ package me.raikou.duels.util;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
+
+import java.util.List;
 
 public class MessageUtil {
 
@@ -33,6 +34,20 @@ public class MessageUtil {
             }
         }
         return msg;
+    }
+
+    /**
+     * Get a raw string from the language file without parsing.
+     */
+    public static String getString(String key) {
+        return me.raikou.duels.DuelsPlugin.getInstance().getLanguageManager().getMessage(key);
+    }
+
+    /**
+     * Get a list of strings from the language file.
+     */
+    public static List<String> getStringList(String key) {
+        return me.raikou.duels.DuelsPlugin.getInstance().getLanguageManager().getList(key);
     }
 
     public static void send(CommandSender sender, String key, String... replacements) {

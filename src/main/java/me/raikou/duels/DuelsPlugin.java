@@ -61,6 +61,10 @@ public class DuelsPlugin extends JavaPlugin {
     @Getter
     private me.raikou.duels.combat.CombatManager combatManager;
     @Getter
+    private me.raikou.duels.match.MatchHistoryManager matchHistoryManager;
+    @Getter
+    private me.raikou.duels.match.MatchResultGui matchResultGui;
+    @Getter
     private long enableTime;
 
     @Override
@@ -148,6 +152,10 @@ public class DuelsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(combatManager.getBlockHandler(), this);
         getServer().getPluginManager().registerEvents(combatManager.getShieldHandler(), this);
         getServer().getPluginManager().registerEvents(combatManager.getGoldenAppleHandler(), this);
+
+        // Match History & Result GUI
+        this.matchHistoryManager = new me.raikou.duels.match.MatchHistoryManager(this);
+        this.matchResultGui = new me.raikou.duels.match.MatchResultGui(this);
 
         getLogger().info("Duels Core Plugin has been enabled!");
     }
