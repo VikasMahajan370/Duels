@@ -60,6 +60,7 @@ public class QueueManager {
                 String.valueOf(queues.get(type).get(kitName).size()), "%required%",
                 String.valueOf(type.getRequiredPlayers()));
 
+        giveQueueItems(player);
         checkQueue(kitName, type);
     }
 
@@ -73,6 +74,7 @@ public class QueueManager {
                 me.raikou.duels.util.MessageUtil.sendSuccess(player, "queue.join", "%kit%", kitName, "%type%",
                         "RANKED");
                 me.raikou.duels.util.MessageUtil.sendInfo(player, "ranked.queue-info", "%elo%", String.valueOf(elo));
+                giveQueueItems(player);
             });
         });
     }
@@ -85,6 +87,7 @@ public class QueueManager {
             for (List<UUID> list : queues.get(type).values()) {
                 if (list.remove(player.getUniqueId())) {
                     me.raikou.duels.util.MessageUtil.sendSuccess(player, "queue.leave");
+                    restoreLobbyItems(player);
                     return;
                 }
             }
@@ -94,6 +97,7 @@ public class QueueManager {
         for (List<RankedQueueEntry> entries : rankedQueues.values()) {
             if (entries.removeIf(e -> e.getPlayer().equals(player.getUniqueId()))) {
                 me.raikou.duels.util.MessageUtil.sendSuccess(player, "queue.leave");
+                restoreLobbyItems(player);
                 return;
             }
         }
@@ -199,5 +203,23 @@ public class QueueManager {
     public int getRankedQueueSize(String kitName) {
         List<RankedQueueEntry> list = rankedQueues.get(kitName);
         return list != null ? list.size() : 0;
+    }
+
+    private void giveQueueItems(Player player) {
+        player.getInventory().clear();
+
+        // Leave Queue item - Red Dye
+        org.bukkit.inventory.ItemStack leaveItem = new org.bukkit.inventory.ItemStack(org.bukkit.Material.RED_DYE);
+        org.bukkit.inventory.meta.ItemMeta meta = leaveItem.getItemMeta();
+        if (meta != null) {
+            meta.displayName(me.raikou.duels.util.MessageUtil
+                    .parse("<red><bold>Leave Queue</bold></red> <dark_gray>(Right Click)"));
+            leaveItem.setItemMeta(meta);
+        }
+        player.getInventory().setItem(4, leaveItem);
+    }
+
+    private void restoreLobbyItems(Player player) {
+        plugin.getLobbyManager().giveLobbyItems(player);
     }
 }

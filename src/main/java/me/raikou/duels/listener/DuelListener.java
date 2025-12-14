@@ -64,6 +64,11 @@ public class DuelListener implements Listener {
                     plugin.getKitEditorManager().openEditorSelectionGui(event.getPlayer());
                     event.setCancelled(true);
                 }
+                // Leave Queue - Red Dye
+                else if (item.getType() == org.bukkit.Material.RED_DYE && plainName.contains("Leave Queue")) {
+                    plugin.getQueueManager().removeFromQueue(event.getPlayer());
+                    event.setCancelled(true);
+                }
             }
         }
     }
