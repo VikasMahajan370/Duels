@@ -13,6 +13,9 @@ commands:
     description: Teleport to lobby
     usage: /lobby
     aliases: [hub, l]
+  stats:
+    description: View player statistics
+    usage: /stats [player]
 permissions:
   duels.admin:
     description: Admin permission for Duels

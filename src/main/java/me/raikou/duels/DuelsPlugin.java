@@ -25,6 +25,8 @@ public class DuelsPlugin extends JavaPlugin {
     private me.raikou.duels.lobby.LobbyManager lobbyManager;
     @Getter
     private me.raikou.duels.gui.GuiManager guiManager;
+    @Getter
+    private me.raikou.duels.stats.StatsManager statsManager;
 
     @Override
     public void onEnable() {
@@ -41,6 +43,7 @@ public class DuelsPlugin extends JavaPlugin {
         this.queueManager = new me.raikou.duels.queue.QueueManager(this);
         this.lobbyManager = new me.raikou.duels.lobby.LobbyManager(this);
         this.guiManager = new me.raikou.duels.gui.GuiManager(this);
+        this.statsManager = new me.raikou.duels.stats.StatsManager(this);
 
         // Storage
         String type = getConfig().getString("storage.type", "sqlite");
@@ -54,6 +57,7 @@ public class DuelsPlugin extends JavaPlugin {
         // Commands
         getCommand("duel").setExecutor(new me.raikou.duels.command.DuelCommand(this));
         getCommand("lobby").setExecutor(new me.raikou.duels.command.LobbyCommand(this));
+        getCommand("stats").setExecutor(new me.raikou.duels.command.StatsCommand(this));
 
         // Listeners
         getServer().getPluginManager().registerEvents(new me.raikou.duels.listener.DuelListener(this), this);

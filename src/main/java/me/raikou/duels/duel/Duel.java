@@ -95,9 +95,19 @@ public class Duel {
         Player winnerPlayer = Bukkit.getPlayer(winner);
         String winnerName = winnerPlayer != null ? winnerPlayer.getName() : "Unknown";
 
+        if (winnerPlayer != null) {
+            plugin.getStatsManager().addWin(winnerPlayer);
+            plugin.getStatsManager().addKill(winnerPlayer); // Assume winner got the kill
+        }
+
         for (UUID uuid : players) {
             Player p = Bukkit.getPlayer(uuid);
             if (p != null) {
+                if (!uuid.equals(winner)) {
+                    plugin.getStatsManager().addLoss(p);
+                    plugin.getStatsManager().addDeath(p);
+                }
+
                 p.showTitle(net.kyori.adventure.title.Title.title(
                         me.raikou.duels.util.MessageUtil.parse("<gold>VICTORY!"),
                         me.raikou.duels.util.MessageUtil.parse("<yellow>Winner: <white>" + winnerName)));
@@ -123,6 +133,14 @@ public class Duel {
                 p.getInventory().clear();
                 p.setHealth(20);
                 p.setFoodLevel(20);
+                p.setSaturation(20);
+                p.setFireTicks(0);
+                p.setExp(0);
+                p.setLevel(0);
+                for (org.bukkit.potion.PotionEffect effect : p.getActivePotionEffects()) {
+                    p.removePotionEffect(effect.getType());
+                }
+
                 if (plugin.getLobbyManager().isLobbySet()) {
                     plugin.getLobbyManager().teleportToLobby(p);
                     plugin.getLobbyManager().giveLobbyItems(p);
