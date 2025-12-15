@@ -3,102 +3,81 @@ package me.raikou.duels.anticheat.checks;
 import me.raikou.duels.DuelsPlugin;
 import me.raikou.duels.anticheat.AbstractCheck;
 import me.raikou.duels.anticheat.CheckType;
+import me.raikou.duels.anticheat.data.PlayerData;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.RayTraceResult;
+import org.bukkit.util.Vector;
 
 /**
- * Improved reach detection with strict distance checking
- * Vanilla reach is 3.0 blocks, we allow small buffer for lag
+ * Improved reach detection using server-side raytracing and hitbox expansion.
+ * Accounts for ping (latency) and movement.
  */
 public class ReachCheck extends AbstractCheck {
 
-    // Vanilla reach is 3.0, creative is 5.0
-    // We use 3.1 for strict checking (tiny buffer for normal play)
-    private static final double MAX_REACH = 3.1;
-    private static final double STRICT_MAX_REACH = 3.5; // Flag immediately above this
-
-    private final Map<UUID, Integer> reachFlags = new HashMap<>();
+    private static final double BASE_REACH = 3.1;
+    private static final double MAX_REACH_CREATIVE = 5.2;
+    private static final double PING_COMPENSATION_FACTOR = 0.002; // 2ms per 1 ping
+    private static final double MOVING_AWAY_BUFFER = 0.3; // Extra buffer if target is running away
 
     public ReachCheck(DuelsPlugin plugin) {
         super(plugin, "Reach", CheckType.COMBAT, "reach");
     }
 
     @Override
-    public boolean check(Player player, Object... data) {
-        if (!isEnabled())
+    public boolean onAttack(Player attacker, org.bukkit.entity.Entity victimEntity, PlayerData data) {
+        if (!(victimEntity instanceof Player victim))
             return false;
 
-        if (data.length < 1 || !(data[0] instanceof Player))
+        if (attacker.getGameMode() == GameMode.CREATIVE)
             return false;
 
-        Player target = (Player) data[0];
-        UUID uuid = player.getUniqueId();
+        // 1. Calculate max allowed reach based on ping
+        double allowedReach = BASE_REACH;
+        allowedReach += Math.min(0.5, data.getPing() * PING_COMPENSATION_FACTOR);
 
-        // Calculate distance between attacker's eye and target's hitbox
-        Location attackerEye = player.getEyeLocation();
-        Location targetLoc = target.getLocation();
-
-        // Get closest point on target's hitbox
-        double targetHalfWidth = 0.3; // Player hitbox is 0.6 wide
-        double distance = getDistanceToHitbox(attackerEye, targetLoc, targetHalfWidth, target.getHeight());
-
-        // Strict check - instant flag
-        if (distance > STRICT_MAX_REACH) {
-            return true;
+        // 2. Add buffer if target is moving away (simulating "combo" reach)
+        Vector victimVelocity = victim.getVelocity();
+        Vector attackerDir = attacker.getLocation().getDirection();
+        if (victimVelocity.dot(attackerDir) > 0) {
+            allowedReach += MOVING_AWAY_BUFFER;
         }
 
-        // Normal check with accumulation
-        if (distance > MAX_REACH) {
-            int flags = reachFlags.getOrDefault(uuid, 0) + 1;
-            reachFlags.put(uuid, flags);
+        // 3. Simple Distance Check First (Optimization)
+        double simpleDist = attacker.getEyeLocation().distance(victim.getEyeLocation());
+        if (simpleDist < allowedReach - 0.5)
+            return false; // Definitely safe
 
-            // Flag after 2 consecutive reach violations
-            if (flags >= 2) {
-                reachFlags.put(uuid, 0);
-                return true;
-            }
+        // 4. RayTrace Check (Precision)
+        // Expand hitbox slightly for minor sync issues
+        BoundingBox box = victim.getBoundingBox().expand(0.1);
+        Location eye = attacker.getEyeLocation();
+
+        RayTraceResult result = box.rayTrace(eye.toVector(), eye.getDirection(), 6.0);
+
+        double actualReach;
+        if (result != null) {
+            actualReach = result.getHitPosition().distance(eye.toVector());
         } else {
-            // Reset if a normal hit
-            reachFlags.put(uuid, 0);
+            // Fallback: Closest point on box
+            actualReach = distanceToBox(eye.toVector(), box);
+        }
+
+        if (actualReach > allowedReach) {
+            // Flag!
+            // We return true to cancel the hit if it's blatant
+            return actualReach > allowedReach + 0.5; // Only cancel if > 3.6+ typically
         }
 
         return false;
     }
 
-    /**
-     * Calculate distance from a point to a player's hitbox
-     */
-    private double getDistanceToHitbox(Location from, Location targetBase, double halfWidth, double height) {
-        // Player hitbox dimensions: 0.6 x 1.8 (width x height)
-        double minX = targetBase.getX() - halfWidth;
-        double maxX = targetBase.getX() + halfWidth;
-        double minY = targetBase.getY();
-        double maxY = targetBase.getY() + height;
-        double minZ = targetBase.getZ() - halfWidth;
-        double maxZ = targetBase.getZ() + halfWidth;
-
-        // Find closest point on hitbox to 'from' location
-        double closestX = clamp(from.getX(), minX, maxX);
-        double closestY = clamp(from.getY(), minY, maxY);
-        double closestZ = clamp(from.getZ(), minZ, maxZ);
-
-        // Calculate distance from 'from' to closest point
-        double dx = from.getX() - closestX;
-        double dy = from.getY() - closestY;
-        double dz = from.getZ() - closestZ;
-
+    private double distanceToBox(Vector point, BoundingBox box) {
+        double dx = Math.max(Math.max(box.getMinX() - point.getX(), point.getX() - box.getMaxX()), 0);
+        double dy = Math.max(Math.max(box.getMinY() - point.getY(), point.getY() - box.getMaxY()), 0);
+        double dz = Math.max(Math.max(box.getMinZ() - point.getZ(), point.getZ() - box.getMaxZ()), 0);
         return Math.sqrt(dx * dx + dy * dy + dz * dz);
-    }
-
-    private double clamp(double value, double min, double max) {
-        return Math.max(min, Math.min(max, value));
-    }
-
-    public void cleanup(UUID uuid) {
-        reachFlags.remove(uuid);
     }
 }

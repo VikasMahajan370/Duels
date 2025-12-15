@@ -8,7 +8,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -32,7 +32,7 @@ public class AntiCheatManager implements Listener {
     private final boolean enabled;
     private final List<Check> checks = new ArrayList<>();
     private final Map<UUID, Map<String, Integer>> violations = new ConcurrentHashMap<>();
-    private final Map<UUID, Location> lastSafeLocation = new ConcurrentHashMap<>();
+    private final Map<UUID, me.raikou.duels.anticheat.data.PlayerData> playerDataMap = new ConcurrentHashMap<>();
     private final String alertPermission = "duels.anticheat.alerts";
 
     public AntiCheatManager(DuelsPlugin plugin) {
@@ -42,8 +42,9 @@ public class AntiCheatManager implements Listener {
         if (enabled) {
             registerChecks();
             Bukkit.getPluginManager().registerEvents(this, plugin);
-            startFlightChecker();
-            startSafeLocationTracker();
+            // We removed the old scheduler in favor of event-based + tick-based approach
+            // But we keep a light tick task for things that must run per-tick
+            startTickTask();
             plugin.getLogger().info("Anti-Cheat system enabled with " + checks.size() + " checks!");
         }
     }
@@ -52,114 +53,73 @@ public class AntiCheatManager implements Listener {
         checks.add(new FlightCheck(plugin));
         checks.add(new KillAuraCheck(plugin));
         checks.add(new ReachCheck(plugin));
+        // Add new checks here when created
     }
 
-    /**
-     * Run flight check frequently for strict detection
-     */
-    private void startFlightChecker() {
-        Check flightCheck = getCheck("Flight");
-        if (flightCheck == null || !flightCheck.isEnabled())
-            return;
+    public me.raikou.duels.anticheat.data.PlayerData getPlayerData(Player player) {
+        return playerDataMap.computeIfAbsent(player.getUniqueId(),
+                k -> new me.raikou.duels.anticheat.data.PlayerData(player));
+    }
 
+    private void startTickTask() {
         new BukkitRunnable() {
             @Override
             public void run() {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    // Only check players in duels
                     if (plugin.getDuelManager().getDuel(player) == null)
                         continue;
 
-                    if (flightCheck.check(player)) {
-                        handleFlightViolation(player, flightCheck);
-                    }
+                    me.raikou.duels.anticheat.data.PlayerData data = getPlayerData(player);
+                    data.update(player); // Update ping etc.
                 }
             }
-        }.runTaskTimer(plugin, 40L, 5L); // Every 0.25 seconds for strict checking
+        }.runTaskTimer(plugin, 1L, 20L); // Update slow data every second
     }
 
-    /**
-     * Track last safe location for teleport-back on violation
-     */
-    private void startSafeLocationTracker() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (player.isOnGround() && !player.isFlying()) {
-                        lastSafeLocation.put(player.getUniqueId(), player.getLocation().clone());
-                    }
-                }
-            }
-        }.runTaskTimer(plugin, 20L, 10L);
-    }
+    @EventHandler
+    public void onMove(org.bukkit.event.player.PlayerMoveEvent event) {
+        if (!enabled)
+            return;
+        Player player = event.getPlayer();
 
-    /**
-     * Handle flight violation with immediate action
-     */
-    private void handleFlightViolation(Player player, Check check) {
-        UUID uuid = player.getUniqueId();
-
-        // Increment violations
-        violations.computeIfAbsent(uuid, k -> new ConcurrentHashMap<>());
-        Map<String, Integer> playerViolations = violations.get(uuid);
-        int vl = playerViolations.getOrDefault(check.getName(), 0) + 1;
-        playerViolations.put(check.getName(), vl);
-
-        // Alert staff
-        alertStaff(player, check, vl, "Flight/Hover detected");
-
-        // Immediate action: Teleport to last safe location
-        Location safeLoc = lastSafeLocation.get(uuid);
-        if (safeLoc != null && vl >= 2) {
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                player.teleport(safeLoc);
-                player.setVelocity(player.getVelocity().setY(-0.5)); // Force down
-            });
+        // Optim: Only check if moving specific distance or valid duel
+        if (event.getFrom().getBlockX() == event.getTo().getBlockX() &&
+                event.getFrom().getBlockY() == event.getTo().getBlockY() &&
+                event.getFrom().getBlockZ() == event.getTo().getBlockZ()) {
+            return;
         }
 
-        // Log to Discord
-        logToDiscord(player, check, vl, "Airborne without permission");
+        if (plugin.getDuelManager().getDuel(player) == null)
+            return;
 
-        // Kick after max violations
-        if (vl >= check.getMaxViolations()) {
-            executeAction(player, check, vl);
+        me.raikou.duels.anticheat.data.PlayerData data = getPlayerData(player);
+
+        for (Check check : checks) {
+            if (check.isEnabled() && check.onMove(player, event.getTo(), event.getFrom(), data)) {
+                handleViolation(player, check, "Movement Violation");
+                // For movement updates, we might want to cancel or set back
+                // But let the specific check handle returning 'true' to signal violation
+            }
         }
     }
 
-    /**
-     * Check combat-related hacks on damage
-     */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDamage(EntityDamageByEntityEvent event) {
         if (!enabled)
             return;
-
         if (!(event.getDamager() instanceof Player attacker))
             return;
-        if (!(event.getEntity() instanceof Player victim))
-            return;
 
-        // Only check in duels
         if (plugin.getDuelManager().getDuel(attacker) == null)
             return;
 
-        // Run combat checks
-        Check killAura = getCheck("KillAura");
-        Check reach = getCheck("Reach");
+        me.raikou.duels.anticheat.data.PlayerData data = getPlayerData(attacker);
+        data.setLastAttackTime(System.currentTimeMillis());
 
-        if (killAura != null && killAura.isEnabled() && killAura.check(attacker, victim)) {
-            flagPlayer(attacker, killAura, "Attack angle: " +
-                    String.format("%.1f°", getAttackAngle(attacker, victim)));
-        }
-
-        if (reach != null && reach.isEnabled() && reach.check(attacker, victim)) {
-            double distance = attacker.getLocation().distance(victim.getLocation());
-            flagPlayer(attacker, reach, "Distance: " + String.format("%.2f blocks", distance));
-
-            // Cancel the hit if reach is too far
-            if (distance > 4.0) {
+        for (Check check : checks) {
+            if (check.isEnabled() && check.onAttack(attacker, event.getEntity(), data)) {
                 event.setCancelled(true);
+                handleViolation(attacker, check, "Combat Violation");
             }
         }
     }
@@ -168,17 +128,18 @@ public class AntiCheatManager implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
         violations.remove(uuid);
-        lastSafeLocation.remove(uuid);
+        playerDataMap.remove(uuid);
+    }
 
-        // Cleanup checks
-        Check flight = getCheck("Flight");
-        if (flight instanceof FlightCheck fc) {
-            fc.cleanup(uuid);
-        }
-        Check reach = getCheck("Reach");
-        if (reach instanceof ReachCheck rc) {
-            rc.cleanup(uuid);
-        }
+    // Cleanup on join to be safe
+    @EventHandler
+    public void onJoin(org.bukkit.event.player.PlayerJoinEvent event) {
+        violations.remove(event.getPlayer().getUniqueId());
+        playerDataMap.remove(event.getPlayer().getUniqueId());
+    }
+
+    private void handleViolation(Player player, Check check, String details) {
+        flagPlayer(player, check, details);
     }
 
     /**
@@ -246,7 +207,8 @@ public class AntiCheatManager implements Listener {
                 details,
                 timestamp);
 
-        plugin.getDiscordManager().sendEmbed(title, description, vl >= check.getMaxViolations() ? 0xFF0000 : 0xFFAA00);
+        plugin.getDiscordManager().sendEmbed(title, description,
+                vl >= check.getMaxViolations() ? 0xFF0000 : 0xFFAA00);
     }
 
     /**
@@ -268,11 +230,7 @@ public class AntiCheatManager implements Listener {
                 });
                 break;
             case "ban":
-                // Ban implementation would go here
-                break;
-            case "notify":
-                // Just notify, no action
-                break;
+                break; // Implement ban if needed
         }
 
         // Reset violations after action
@@ -288,22 +246,6 @@ public class AntiCheatManager implements Listener {
         if (ratio >= 0.3)
             return NamedTextColor.YELLOW;
         return NamedTextColor.GREEN;
-    }
-
-    private double getAttackAngle(Player attacker, Player victim) {
-        var toTarget = victim.getLocation().toVector().subtract(attacker.getEyeLocation().toVector()).normalize();
-        var lookDir = attacker.getEyeLocation().getDirection().normalize();
-        double dot = lookDir.dot(toTarget);
-        return Math.toDegrees(Math.acos(Math.min(1.0, Math.max(-1.0, dot))));
-    }
-
-    private Check getCheck(String name) {
-        for (Check check : checks) {
-            if (check.getName().equalsIgnoreCase(name)) {
-                return check;
-            }
-        }
-        return null;
     }
 
     public int getViolations(Player player, String checkName) {

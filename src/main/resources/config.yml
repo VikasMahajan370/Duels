@@ -5,7 +5,7 @@
 # Settings used for general plugin behavior
 settings:
   debug: false # Enable debug messages in console
-  language: en # Language code (en, tr)
+  language: tr # Language code (en, tr)
 
 # Server info displayed in /ping command
 server:
@@ -58,15 +58,21 @@ combat:
 anticheat:
   enabled: true
   # Action when max violations reached: kick, ban, notify
-  action: notify
+  action: kick
   checks:
     flight:
       enabled: true
-      max-violations: 5
+      max-violations: 10
     killaura:
       enabled: true
-      max-violations: 8
+      max-violations: 7
     reach:
+      enabled: true
+      max-violations: 8
+    velocity:
+      enabled: true
+      max-violations: 15
+    autoclicker:
       enabled: true
       max-violations: 10
 
@@ -338,16 +344,16 @@ discord:
 #
 motd:
   enabled: true
-  max-players: 100
+  max-players: 10000
   lines:
-    - '        <bold><gradient:#6366F1:#8B5CF6>✦ RAIKOU DUELS ✦</gradient></bold>'
-    - '   <gray>Practice PvP</gray> <dark_gray>•</dark_gray> <aqua>%online%</aqua><gray>/</gray><white>%max%</white> <dark_gray>•</dark_gray> <yellow>%active_duels% Duels</yellow>'
+    - '<bold><gradient:#7DD3FC:#A5B4FC>RAIKOU DUELS</gradient></bold> <bold><gradient:#6EE7B7:#22C55E>1.21+</gradient></bold>'
+    - '<gray>Practice PvP</gray> <dark_gray>•</dark_gray> <white>%online%</white><gray>/</gray><dark_gray>%max%</dark_gray> <dark_gray>•</dark_gray> <gray>%active_duels% duels</gray>'
   
   # Player sample (hover over player count)
   player-sample:
     enabled: true
     show-players: true
-    max-players: 12
+    max-players: 6
     # Custom lines shown before player list
     lines:
       - '§6§l✦ RAIKOU DUELS ✦'
@@ -356,6 +362,9 @@ motd:
       - '§7▸ In Duel: §c%in_duel%'
       - '§7▸ In Queue: §e%in_queue%'
       - '§7▸ Active Duels: §a%active_duels%'
+      - '§7▸ Server Uptime: §a%uptime%'
+      - '§7▸ Ram Usage: §a%memory%'
+      - '§7▸ TPS: §a%tps%'
       - ''
       - '§e§lOnline Players:'
 
@@ -435,7 +444,7 @@ tab:
 # Placeholders: %prefix%, %suffix%, %player%, %displayname%, %message%
 chat:
   enabled: true
-  format: "%prefix%<white>%player%</white>%suffix% <dark_gray>»</dark_gray> <gray>%message%"
+  format: "%prefix%%player%%suffix% <dark_gray>»</dark_gray> <gray>%message%"
   # Cooldown in seconds between messages
   cooldown: 1.5
   # Anti-spam settings

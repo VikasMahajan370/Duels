@@ -24,11 +24,20 @@ public interface Check {
     boolean isEnabled();
 
     /**
-     * Process a check on a player
-     * 
-     * @return true if violation detected
+     * Called when a player moves.
      */
-    boolean check(Player player, Object... data);
+    default boolean onMove(Player player, org.bukkit.Location to, org.bukkit.Location from,
+            me.raikou.duels.anticheat.data.PlayerData data) {
+        return false;
+    }
+
+    /**
+     * Called when a player attacks another entity.
+     */
+    default boolean onAttack(Player attacker, org.bukkit.entity.Entity victim,
+            me.raikou.duels.anticheat.data.PlayerData data) {
+        return false;
+    }
 
     /**
      * Get the maximum violations before action
