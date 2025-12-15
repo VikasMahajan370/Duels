@@ -142,6 +142,10 @@ public class Duel {
         player.setWalkSpeed(0f);
         player.setFlySpeed(0f);
 
+        // Disable flight
+        player.setAllowFlight(false);
+        player.setFlying(false);
+
         // Add slowness to prevent movement (high amplifier)
         player.addPotionEffect(new org.bukkit.potion.PotionEffect(
                 org.bukkit.potion.PotionEffectType.SLOWNESS, 200, 255, false, false, false));
@@ -162,6 +166,10 @@ public class Duel {
         // Restore original walk speed
         player.setWalkSpeed(originalWalkSpeed);
         player.setFlySpeed(0.1f);
+
+        // Ensure flight is still disabled
+        player.setAllowFlight(false);
+        player.setFlying(false);
 
         // Remove freeze effects
         player.removePotionEffect(org.bukkit.potion.PotionEffectType.SLOWNESS);
