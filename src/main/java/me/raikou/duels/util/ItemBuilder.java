@@ -5,6 +5,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import net.kyori.adventure.text.Component;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,9 +33,23 @@ public class ItemBuilder {
         return this;
     }
 
+    public ItemBuilder name(Component name) {
+        if (meta != null) {
+            meta.displayName(name);
+        }
+        return this;
+    }
+
     public ItemBuilder lore(String... lore) {
         if (meta != null) {
             meta.setLore(Arrays.asList(lore));
+        }
+        return this;
+    }
+
+    public ItemBuilder lore(Component... lore) {
+        if (meta != null) {
+            meta.lore(Arrays.asList(lore));
         }
         return this;
     }
@@ -47,6 +62,18 @@ public class ItemBuilder {
             }
             lore.addAll(Arrays.asList(lines));
             meta.setLore(lore);
+        }
+        return this;
+    }
+
+    public ItemBuilder addLore(Component... lines) {
+        if (meta != null) {
+            List<Component> lore = meta.lore();
+            if (lore == null) {
+                lore = new ArrayList<>();
+            }
+            lore.addAll(Arrays.asList(lines));
+            meta.lore(lore);
         }
         return this;
     }

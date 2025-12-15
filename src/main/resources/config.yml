@@ -5,7 +5,7 @@
 # Settings used for general plugin behavior
 settings:
   debug: false # Enable debug messages in console
-  language: tr # Language code (en, tr)
+  language: en # Language code (en, tr)
 
 # Server info displayed in /ping command
 server:

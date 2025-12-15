@@ -65,4 +65,10 @@ public class MessageUtil {
     public static void sendInfo(CommandSender sender, String key, String... replacements) {
         sender.sendMessage(get(key, replacements));
     }
+
+    public static String getLegacy(String key, String... replacements) {
+        String msg = getMessageString(key, replacements);
+        return net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
+                .serialize(mm.deserialize(msg));
+    }
 }
